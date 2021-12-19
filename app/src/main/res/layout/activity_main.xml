@@ -20,18 +20,18 @@
         app:layout_constraintTop_toTopOf="parent"
         android:orientation="horizontal">
 
-    <ImageButton
-        android:id="@+id/btn_img_onoff"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_marginBottom="0dp"
-        android:layout_marginEnd="1dp"
-        android:layout_marginStart="0dp"
-        android:layout_marginTop="0dp"
-        android:layout_weight="1"
-        android:src="@drawable/on_2"
-        android:background="@null"
-        />
+        <ImageButton
+            android:id="@+id/btn_img_onoff"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="0dp"
+            android:layout_marginTop="0dp"
+            android:layout_marginEnd="1dp"
+            android:layout_marginBottom="0dp"
+            android:layout_weight="1"
+            android:background="@null"
+            android:onClick="onStartStop"
+            android:scaleType="fitCenter"/>
     </LinearLayout>
 
     <LinearLayout
@@ -50,14 +50,13 @@
             android:id="@+id/btn_img_blink"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_marginBottom="0dp"
-            android:layout_marginEnd="1dp"
             android:layout_marginStart="20dp"
             android:layout_marginTop="0dp"
+            android:layout_marginEnd="1dp"
+            android:layout_marginBottom="0dp"
             android:layout_weight="1"
-            android:src="@drawable/blink1_on"
             android:background="@null"
-             />
+            android:scaleType="fitCenter" />
 
         <TextView
             android:id="@+id/text_blink"
@@ -105,13 +104,13 @@
             android:id="@+id/btn_img_brightness"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_marginBottom="0dp"
-            android:layout_marginEnd="1dp"
             android:layout_marginStart="20dp"
             android:layout_marginTop="0dp"
+            android:layout_marginEnd="1dp"
+            android:layout_marginBottom="0dp"
             android:layout_weight="1"
-            android:src="@drawable/bright1_on"
-            android:background="@null" />
+            android:background="@null"
+            android:scaleType="fitCenter"/>
 
         <TextView
             android:id="@+id/text_brightness"
