@@ -8,7 +8,12 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
+// ライト
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraManager;
+
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -18,10 +23,11 @@ import android.widget.Toast;
 
 //国設定
 import java.util.Locale;
+import java.util.Timer;
+import java.util.TimerTask;
 
 //スレッド関連
 import static java.lang.Thread.sleep;
-
 
 public class MainActivity extends AppCompatActivity {
 
@@ -43,6 +49,17 @@ public class MainActivity extends AppCompatActivity {
     private SeekBar seek_brightness;    //輝度調整
     private boolean isStart = false;
 
+    //  スレッド関連
+    private boolean blinking = false;
+    private Timer blinkTimer;					//タイマー用
+    private BlinkingTask blinkTimerTask;		//タイマタスククラス
+    private Handler bHandler = new Handler();   //UI Threadへのpost用ハンドラ
+
+    //  ライト関連
+    private CameraManager mCameraManager;
+    private String mCameraId = null;
+    private boolean isOn = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,6 +69,17 @@ public class MainActivity extends AppCompatActivity {
         _local = Locale.getDefault();
         _language = _local.getLanguage();
         _country = _local.getCountry();
+
+        //カメラ初期化
+        mCameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+        mCameraManager.registerTorchCallback(new CameraManager.TorchCallback() {
+            @Override
+            public void onTorchModeChanged(String cameraId, boolean enabled) {
+                super.onTorchModeChanged(cameraId, enabled);
+                mCameraId = cameraId;
+                isOn = enabled;
+            }
+        }, new Handler());
 
         //  シークバーの選択
         seekSelect();
@@ -93,11 +121,9 @@ public class MainActivity extends AppCompatActivity {
         AppDBUpdated();
 
         //カメラ
-        /*
         if (mCameraManager != null) {
             mCameraManager = null;
         }
-         */
     }
 
     /* **************************************************
@@ -153,9 +179,11 @@ public class MainActivity extends AppCompatActivity {
     public void onStartStop(View view){
 
         if (isStart){
+            light_OFF();
             isStart = false;
         }
         else{
+            light_ON();
             isStart = true;
         }
 
@@ -293,6 +321,83 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "Saving.... ERROR ", Toast.LENGTH_SHORT).show();
         } else {
             Toast.makeText(this, "Saving.... OK "+ "op=0:"+db_isopen+" interval=1:"+db_interval+" brightness=2:"+db_brightness, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /* **************************************************
+        ライト処理
+    ****************************************************/
+    /*
+     *   ライトＯＮ
+     * */
+    public void light_on_exec() {
+        if(mCameraId == null){
+            return;
+        }
+        try {
+            mCameraManager.setTorchMode(mCameraId, blinking);
+        } catch (CameraAccessException e) {
+            //エラー処理
+            e.printStackTrace();
+        }
+    }
+    public void light_ON() {
+
+        if (db_interval == 0){
+            blinking = true;    //常時点灯
+            light_on_exec();
+        }
+        else{
+            this.blinkTimer = new Timer();
+            this.blinkTimerTask = new BlinkingTask();
+            this.blinkTimer.schedule(blinkTimerTask, (db_interval*100), (db_interval*100));
+        }
+    }
+    /*
+     *   ライトＯＦＦ
+     * */
+    public void light_OFF() {
+        if(mCameraId == null){
+            return;
+        }
+        try {
+            mCameraManager.setTorchMode(mCameraId, false);
+        } catch (CameraAccessException e) {
+            //エラー処理
+            e.printStackTrace();
+        }
+
+        // スレッド停止
+        if (this.blinkTimer != null) {
+            this.blinkTimer.cancel();
+            this.blinkTimer = null;
+        }
+    }
+
+    /* **************************************************
+        スレッド
+    ****************************************************/
+
+    /**
+     * タイマータスク派生クラス
+     * run()に定周期で処理したい内容を記述
+     *
+     */
+    public class BlinkingTask extends TimerTask {
+        @Override
+        public void run() {
+            //ここに定周期で実行したい処理を記述します
+            bHandler.post( new Runnable() {
+                public void run() {
+                    light_on_exec();
+                    if (blinking){
+                        blinking = false;
+                    }
+                    else{
+                        blinking = true;
+                    }
+                }
+            });
         }
     }
 }
