@@ -28,10 +28,27 @@
             android:layout_marginTop="0dp"
             android:layout_marginEnd="1dp"
             android:layout_marginBottom="0dp"
-            android:layout_weight="1"
+            android:layout_weight="2"
             android:background="@null"
             android:onClick="onStartStop"
-            android:scaleType="fitCenter"/>
+            android:scaleType="fitCenter"
+            tools:ignore="SpeakableTextPresentCheck" />
+
+        <TextView
+            android:id="@+id/text_onoff"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_marginTop="5dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginBottom="5dp"
+            android:layout_marginEnd="5dp"
+            android:gravity="center|left"
+            android:textColor="@color/teal_700"
+            android:text="OFF"
+            android:textStyle="bold"
+            android:textSize="40dp"/>
+
     </LinearLayout>
 
     <LinearLayout
@@ -56,7 +73,8 @@
             android:layout_marginBottom="0dp"
             android:layout_weight="1"
             android:background="@null"
-            android:scaleType="fitCenter" />
+            android:scaleType="fitCenter"
+            tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
 
         <TextView
             android:id="@+id/text_blink"
@@ -100,6 +118,21 @@
         app:layout_constraintTop_toBottomOf="@+id/linearLayout12"
         android:orientation="horizontal">
 
+        <TextView
+            android:id="@+id/text_status"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_marginTop="5dp"
+            android:layout_marginStart="1dp"
+            android:layout_marginBottom="5dp"
+            android:layout_marginEnd="5dp"
+            android:gravity="center"
+            android:textColor="@color/teal_700"
+            android:text="1"
+            android:textStyle="bold"
+            android:textSize="20dp"/>
+        <!--
         <ImageButton
             android:id="@+id/btn_img_brightness"
             android:layout_width="0dp"
@@ -110,7 +143,8 @@
             android:layout_marginBottom="0dp"
             android:layout_weight="1"
             android:background="@null"
-            android:scaleType="fitCenter"/>
+            android:scaleType="fitCenter"
+            tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
 
         <TextView
             android:id="@+id/text_brightness"
@@ -139,6 +173,7 @@
             android:progress="5"
             android:max="15"
             android:progressBackgroundTint="@color/design_default_color_primary_variant"/>
+            -->
 
     </LinearLayout>
 

@@ -137,10 +137,12 @@ public class MainActivity extends AppCompatActivity {
         }
         seek_blinkinterval.setProgress(db_interval);
 
+        /*
         if (seek_brightness == null) {
             seek_brightness = (SeekBar) findViewById(R.id.seek_brightness);
         }
         seek_brightness.setProgress(db_brightness);
+        */
 
         /* IMAGE BUTTON */
         if (img_onoff == null){
@@ -149,29 +151,51 @@ public class MainActivity extends AppCompatActivity {
         if (img_blink == null){
             img_blink = (ImageButton) findViewById(R.id.btn_img_blink);
         }
+        /*
         if (img_brightness == null){
             img_brightness = (ImageButton) findViewById(R.id.btn_img_brightness);
         }
+        */
 
         /* ON時 */
         if (isStart){
             img_onoff.setImageResource(R.drawable.on_2);
             img_blink.setImageResource(R.drawable.blink1_off);
-            img_brightness.setImageResource(R.drawable.bright1_off);
+            //img_brightness.setImageResource(R.drawable.bright1_off);
         }
         /* OFF時 */
         else {
             img_onoff.setImageResource(R.drawable.off_2);
             img_blink.setImageResource(R.drawable.blink1_on);
-            img_brightness.setImageResource(R.drawable.bright1_on);
+            //img_brightness.setImageResource(R.drawable.bright1_on);
         }
 
         /* TEXT表示 */
+        TextView text_onoff = (TextView)findViewById(R.id.text_onoff);
+        if (isStart){
+            text_onoff.setText("O N");
+        }
+        else{
+            text_onoff.setText("OFF");
+        }
         TextView text_volume1 = (TextView)findViewById(R.id.text_blink);
         text_volume1.setText(""+db_interval);
+
+        TextView text_status = (TextView)findViewById(R.id.text_status);
+        int data = db_interval*100;
+        switch (db_interval){
+            case 0:     text_status.setText("常時： 点灯");
+                        break;
+
+            default:    text_status.setText("点滅間隔： "+data+" msec");
+                        break;
+        }
+
+
+        /*
         TextView text_volume2 = (TextView)findViewById(R.id.text_brightness);
         text_volume2.setText(""+db_brightness);
-
+        */
     }
     /* **************************************************
         ライトスタート　ボタン処理
@@ -216,7 +240,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
         );
-
+        /*
         //  輝度調整
         seek_brightness = (SeekBar)findViewById(R.id.seek_brightness);
         seek_brightness.setOnSeekBarChangeListener(
@@ -239,6 +263,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
         );
+        */
     }
 
     /* **************************************************
