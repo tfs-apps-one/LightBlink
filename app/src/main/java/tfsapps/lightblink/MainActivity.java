@@ -17,6 +17,7 @@ import android.os.Handler;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,9 +26,6 @@ import android.widget.Toast;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
-
-//スレッド関連
-import static java.lang.Thread.sleep;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -184,19 +182,36 @@ public class MainActivity extends AppCompatActivity {
         TextView text_status = (TextView)findViewById(R.id.text_status);
         int data = db_interval*100;
         switch (db_interval){
-            case 0:     text_status.setText("常時： 点灯");
+            case 0:     text_status.setText(" 常時 点灯 ");
                         break;
 
             default:    text_status.setText("点滅間隔： "+data+" msec");
                         break;
         }
 
-
         /*
         TextView text_volume2 = (TextView)findViewById(R.id.text_brightness);
         text_volume2.setText(""+db_brightness);
         */
+
+        /* レイアウトのアクティブ表示 */
+        LinearLayout lay_normal_11 = (LinearLayout)findViewById(R.id.linearLayout11);
+        LinearLayout lay_normal_12 = (LinearLayout)findViewById(R.id.linearLayout12);
+        LinearLayout lay_normal_13 = (LinearLayout)findViewById(R.id.linearLayout13);
+        // ON
+        if (isStart == true){
+            lay_normal_11.setBackgroundResource(R.drawable.btn_round);
+            lay_normal_12.setBackgroundResource(R.drawable.btn_grad3);
+            lay_normal_13.setBackgroundResource(R.drawable.btn_grad3);
+        }
+        // OFF
+        else {
+            lay_normal_11.setBackgroundResource(R.drawable.btn_grad3);
+            lay_normal_12.setBackgroundResource(R.drawable.btn_round);
+            lay_normal_13.setBackgroundResource(R.drawable.btn_round);
+        }
     }
+
     /* **************************************************
         ライトスタート　ボタン処理
     ****************************************************/
