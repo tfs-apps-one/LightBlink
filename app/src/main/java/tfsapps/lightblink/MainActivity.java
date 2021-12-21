@@ -181,11 +181,13 @@ public class MainActivity extends AppCompatActivity {
 
         TextView text_status = (TextView)findViewById(R.id.text_status);
         int data = db_interval*100;
+        String s1 = getResources().getString(R.string.string_always);
+        String s2 = getResources().getString(R.string.string_interval);
+        String s3 = getResources().getString(R.string.string_msec);
         switch (db_interval){
-            case 0:     text_status.setText(" 常時 点灯 ");
+            case 0:     text_status.setText(s1);
                         break;
-
-            default:    text_status.setText("点滅間隔： "+data+" msec");
+            default:    text_status.setText(s2+" "+data+" "+s3);
                         break;
         }
 
