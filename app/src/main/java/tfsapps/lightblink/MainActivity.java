@@ -333,14 +333,17 @@ public class MainActivity extends AppCompatActivity {
             db_isopen = 1;
             db_interval = 1;
             db_brightness = 1;
-
+            /*
             if (ret == -1) {
                 Toast.makeText(this, "DataBase Create.... ERROR", Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(this, "DataBase Create.... OK", Toast.LENGTH_SHORT).show();
             }
+             */
         } else {
+            /*
             Toast.makeText(this, "Data Loading...  interval:" + db_interval, Toast.LENGTH_SHORT).show();
+             */
         }
     }
 
@@ -359,11 +362,13 @@ public class MainActivity extends AppCompatActivity {
         } finally {
             db.close();
         }
+        /*
         if (ret == -1) {
             Toast.makeText(this, "Saving.... ERROR ", Toast.LENGTH_SHORT).show();
         } else {
             Toast.makeText(this, "Saving.... OK "+ "op=0:"+db_isopen+" interval=1:"+db_interval+" brightness=2:"+db_brightness, Toast.LENGTH_SHORT).show();
         }
+         */
     }
 
     /* **************************************************
