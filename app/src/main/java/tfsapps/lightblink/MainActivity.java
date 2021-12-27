@@ -27,6 +27,10 @@ import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
+//広告
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.AdRequest;
+
 public class MainActivity extends AppCompatActivity {
 
     //  DB関連
@@ -58,6 +62,9 @@ public class MainActivity extends AppCompatActivity {
     private String mCameraId = null;
     private boolean isOn = false;
 
+    // 広告
+    private AdView mAdview;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,6 +74,11 @@ public class MainActivity extends AppCompatActivity {
         _local = Locale.getDefault();
         _language = _local.getLanguage();
         _country = _local.getCountry();
+
+        //広告
+        mAdview = findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mAdview.loadAd(adRequest);
 
         //カメラ初期化
         mCameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
