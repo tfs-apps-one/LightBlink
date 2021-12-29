@@ -12,6 +12,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraManager;
 
+import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
@@ -21,6 +22,9 @@ import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+//アラーム関連
+import android.media.MediaPlayer;
 
 //国設定
 import java.util.Locale;
@@ -57,10 +61,20 @@ public class MainActivity extends AppCompatActivity {
     private BlinkingTask blinkTimerTask;		//タイマタスククラス
     private Handler bHandler = new Handler();   //UI Threadへのpost用ハンドラ
 
+    private Timer mainTimer;					//タイマー用
+    private MainTimerTask mainTimerTask;		//タイマタスククラス
+    private Handler mHandler = new Handler();   //UI Threadへのpost用ハンドラ
+
     //  ライト関連
     private CameraManager mCameraManager;
     private String mCameraId = null;
     private boolean isOn = false;
+
+    //  点滅用のサウンド
+//    private MediaPlayer bgm;
+    private MediaPlayer loadsound;
+    private AudioManager am;
+    private int init_volume;    //アプリ起動時の音量値
 
     // 広告
     private AdView mAdview;
@@ -75,12 +89,16 @@ public class MainActivity extends AppCompatActivity {
         _language = _local.getLanguage();
         _country = _local.getCountry();
 
-        //広告
+        //  音声（むおん）
+//        am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+//        init_volume = am.getStreamVolume(AudioManager.STREAM_MUSIC);
+
+        //  広告
         mAdview = findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder().build();
         mAdview.loadAd(adRequest);
 
-        //カメラ初期化
+        //  カメラ初期化
         mCameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         mCameraManager.registerTorchCallback(new CameraManager.TorchCallback() {
             @Override
@@ -106,6 +124,12 @@ public class MainActivity extends AppCompatActivity {
         helper = new MyOpenHelper(this);
         AppDBInitRoad();
         screen_display();
+
+        //音声初期化
+        if (am == null) {
+            am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+            init_volume = am.getStreamVolume(AudioManager.STREAM_MUSIC);
+        }
     }
     @Override
     public void onResume() {
@@ -133,6 +157,11 @@ public class MainActivity extends AppCompatActivity {
         //カメラ
         if (mCameraManager != null) {
             mCameraManager = null;
+        }
+        /* 音量の戻しの処理 */
+        if (am != null){
+            am.setStreamVolume(AudioManager.STREAM_MUSIC, init_volume, 0);
+            am = null;
         }
     }
 
@@ -399,6 +428,10 @@ public class MainActivity extends AppCompatActivity {
             //エラー処理
             e.printStackTrace();
         }
+        if (am != null) {
+            //  ミュート状態で鳴動（画面OFFで点滅がストップしない対策
+            am.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0);
+        }
     }
     public void light_ON() {
 
@@ -411,6 +444,13 @@ public class MainActivity extends AppCompatActivity {
             this.blinkTimerTask = new BlinkingTask();
             this.blinkTimer.schedule(blinkTimerTask, (db_interval*100), (db_interval*100));
         }
+
+        this.loadsound = (MediaPlayer) MediaPlayer.create(this, R.raw.mumu2);
+        this.mainTimer = new Timer();
+        //タスククラスインスタンス生成
+        this.mainTimerTask = new MainTimerTask();
+        //タイマースケジュール設定＆開始
+        this.mainTimer.schedule(mainTimerTask, 100, 10);
     }
     /*
      *   ライトＯＦＦ
@@ -431,11 +471,36 @@ public class MainActivity extends AppCompatActivity {
             this.blinkTimer.cancel();
             this.blinkTimer = null;
         }
+        if (this.mainTimer != null) {
+            this.mainTimer.cancel();
+            this.mainTimer = null;
+        }
     }
 
     /* **************************************************
         スレッド
     ****************************************************/
+
+    /**
+     * タイマータスク派生クラス
+     * run()に定周期で処理したい内容を記述
+     *
+     */
+    public class MainTimerTask extends TimerTask {
+        @Override
+        public void run() {
+            //ここに定周期で実行したい処理を記述します
+            mHandler.post( new Runnable() {
+                public void run() {
+                    if (loadsound != null) {
+                        //BGMタイマー起動
+                        loadsound.start();
+                    }
+                }
+            });
+        }
+    }
+
 
     /**
      * タイマータスク派生クラス
