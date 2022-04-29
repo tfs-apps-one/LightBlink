@@ -3,12 +3,15 @@ package tfsapps.lightblink;
 import androidx.appcompat.app.AppCompatActivity;
 
 //DB関連
+import android.app.AlertDialog;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 // ライト
+import android.graphics.Color;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraManager;
 
@@ -16,10 +19,14 @@ import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
+import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -38,10 +45,13 @@ import com.google.android.gms.ads.AdRequest;
 public class MainActivity extends AppCompatActivity {
 
     //  DB関連
-    private MyOpenHelper helper;        //DBアクセス
+    public MyOpenHelper helper;        //DBアクセス
     private int db_isopen = 0;          //DB使用したか
     private int db_interval = 0;        //DB点滅間隔
     private int db_brightness = 0;      //DB輝度調整
+    private int db_data1 = 0;           //DBユーザーレベル
+    private int db_data2 = 0;           //DB自動ONのSW
+    private int db_data3 = 0;           //DB画面タイプのSW
 
     //  国設定
     private Locale _local;
@@ -54,16 +64,19 @@ public class MainActivity extends AppCompatActivity {
     private SeekBar seek_blinkinterval; //点滅間隔
     private SeekBar seek_brightness;    //輝度調整
     private boolean isStart = false;
+    private Spinner sp_screen;          //スピナー
+    private int spinner_select;
+    private Switch sw_auto;             //トグルＳＷ
 
     //  スレッド関連
     private boolean blinking = false;
-    private Timer blinkTimer;					//タイマー用
-    private BlinkingTask blinkTimerTask;		//タイマタスククラス
-    private Handler bHandler = new Handler();   //UI Threadへのpost用ハンドラ
+    public Timer blinkTimer;					//タイマー用
+    public BlinkingTask blinkTimerTask;		//タイマタスククラス
+    public Handler bHandler = new Handler();   //UI Threadへのpost用ハンドラ
 
-    private Timer mainTimer;					//タイマー用
-    private MainTimerTask mainTimerTask;		//タイマタスククラス
-    private Handler mHandler = new Handler();   //UI Threadへのpost用ハンドラ
+    public Timer mainTimer;					//タイマー用
+    public MainTimerTask mainTimerTask;		//タイマタスククラス
+    public Handler mHandler = new Handler();   //UI Threadへのpost用ハンドラ
 
     //  ライト関連
     private CameraManager mCameraManager;
@@ -76,8 +89,12 @@ public class MainActivity extends AppCompatActivity {
     private AudioManager am;
     private int init_volume;    //アプリ起動時の音量値
 
-    // 広告
+    //  広告
     private AdView mAdview;
+
+    //  ユーザーレベル最大５
+    final int LV_MAX = 5;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,6 +128,9 @@ public class MainActivity extends AppCompatActivity {
 
         //  シークバーの選択
         seekSelect();
+
+        //  スピナーの選択
+        spinnerSelect();
     }
     /* **************************************************
         各種OS上の動作定義
@@ -170,6 +190,8 @@ public class MainActivity extends AppCompatActivity {
     ****************************************************/
     public void screen_display(){
 
+        Button btn_tips = (Button)findViewById(R.id.btn_tips);
+
         /* SEEK */
         if (seek_blinkinterval == null) {
             seek_blinkinterval = (SeekBar) findViewById(R.id.seek_blink);
@@ -198,15 +220,23 @@ public class MainActivity extends AppCompatActivity {
 
         /* ON時 */
         if (isStart){
-            img_onoff.setImageResource(R.drawable.on_2);
-            img_blink.setImageResource(R.drawable.blink1_off);
+            //img_onoff.setImageResource(R.drawable.on_2);
+            //img_blink.setImageResource(R.drawable.blink1_off);
             //img_brightness.setImageResource(R.drawable.bright1_off);
+
+            btn_tips.setBackgroundTintList(null);
+            btn_tips.setTextColor(getColor(R.color.material_on_background_disabled));
+            btn_tips.setBackgroundResource(R.drawable.btn_grad3);
         }
         /* OFF時 */
         else {
-            img_onoff.setImageResource(R.drawable.off_2);
-            img_blink.setImageResource(R.drawable.blink1_on);
+            //img_onoff.setImageResource(R.drawable.off_2);
+            //img_blink.setImageResource(R.drawable.blink1_on);
             //img_brightness.setImageResource(R.drawable.bright1_on);
+
+            btn_tips.setBackgroundTintList(null);
+            btn_tips.setTextColor(getColor(R.color.purple_700));
+            btn_tips.setBackgroundResource(R.drawable.btn_grad3);
         }
 
         /* TEXT表示 */
@@ -241,17 +271,70 @@ public class MainActivity extends AppCompatActivity {
         LinearLayout lay_normal_11 = (LinearLayout)findViewById(R.id.linearLayout11);
         LinearLayout lay_normal_12 = (LinearLayout)findViewById(R.id.linearLayout12);
         LinearLayout lay_normal_13 = (LinearLayout)findViewById(R.id.linearLayout13);
-        // ON
-        if (isStart == true){
-            lay_normal_11.setBackgroundResource(R.drawable.btn_round);
-            lay_normal_12.setBackgroundResource(R.drawable.btn_grad3);
-            lay_normal_13.setBackgroundResource(R.drawable.btn_grad3);
-        }
-        // OFF
-        else {
-            lay_normal_11.setBackgroundResource(R.drawable.btn_grad3);
-            lay_normal_12.setBackgroundResource(R.drawable.btn_round);
-            lay_normal_13.setBackgroundResource(R.drawable.btn_round);
+        LinearLayout lay_normal_22 = (LinearLayout)findViewById(R.id.linearLayout22);
+
+        switch (spinner_select) {
+            default:
+            case 1:
+                // ON
+                if (isStart == true) {
+                    img_onoff.setImageResource(R.drawable.on_2);
+
+                    lay_normal_11.setBackgroundResource(R.drawable.btn_round);
+                    lay_normal_12.setBackgroundResource(R.drawable.btn_grad3);
+                    lay_normal_13.setBackgroundResource(R.drawable.btn_grad3);
+                    lay_normal_22.setBackgroundResource(R.drawable.btn_grad3);
+                }
+                // OFF
+                else {
+                    img_onoff.setImageResource(R.drawable.off_2);
+
+                    lay_normal_11.setBackgroundResource(R.drawable.btn_grad3);
+                    lay_normal_12.setBackgroundResource(R.drawable.btn_round);
+                    lay_normal_13.setBackgroundResource(R.drawable.btn_round);
+                    lay_normal_22.setBackgroundResource(R.drawable.btn_round);
+                }
+                break;
+            case 2:
+                // ON
+                if (isStart == true) {
+                    img_onoff.setImageResource(R.drawable.on_3);
+
+                    lay_normal_11.setBackgroundResource(R.drawable.btn_grad1);
+                    lay_normal_12.setBackgroundResource(R.drawable.btn_grad3);
+                    lay_normal_13.setBackgroundResource(R.drawable.btn_grad3);
+                    lay_normal_22.setBackgroundResource(R.drawable.btn_grad3);
+                }
+                // OFF
+                else {
+                    img_onoff.setImageResource(R.drawable.off_3);
+
+                    lay_normal_11.setBackgroundResource(R.drawable.btn_grad3);
+                    lay_normal_12.setBackgroundResource(R.drawable.btn_grad1);
+                    lay_normal_13.setBackgroundResource(R.drawable.btn_grad1);
+                    lay_normal_22.setBackgroundResource(R.drawable.btn_grad1);
+                }
+                break;
+            case 3:
+                // ON
+                if (isStart == true) {
+                    img_onoff.setImageResource(R.drawable.on_4);
+
+                    lay_normal_11.setBackgroundResource(R.drawable.btn_grad2);
+                    lay_normal_12.setBackgroundResource(R.drawable.btn_grad3);
+                    lay_normal_13.setBackgroundResource(R.drawable.btn_grad3);
+                    lay_normal_22.setBackgroundResource(R.drawable.btn_grad3);
+                }
+                // OFF
+                else {
+                    img_onoff.setImageResource(R.drawable.off_4);
+
+                    lay_normal_11.setBackgroundResource(R.drawable.btn_grad3);
+                    lay_normal_12.setBackgroundResource(R.drawable.btn_grad2);
+                    lay_normal_13.setBackgroundResource(R.drawable.btn_grad2);
+                    lay_normal_22.setBackgroundResource(R.drawable.btn_grad2);
+                }
+                break;
         }
     }
 
@@ -271,6 +354,84 @@ public class MainActivity extends AppCompatActivity {
 
         screen_display();
     }
+
+
+    /* **************************************************
+        TIPS　ボタン処理
+    ****************************************************/
+    public void onTips(View view){
+        AlertDialog.Builder guide = new AlertDialog.Builder(this);
+        TextView vmessage = new TextView(this);
+        int level = 0;
+        String pop_message = "";
+        String btn_yes = "";
+        String btn_no = "";
+
+        if (isStart == false) {
+
+            //ユーザーレベル算出
+            level = db_data1;
+            level++;
+            if (level >= LV_MAX){
+                level = LV_MAX;
+            }
+
+            if (_language.equals("ja")) {
+
+                pop_message += "\n\n 動画を視聴して操作履歴を増やしますか？" +
+                        "\n\n\n ・視聴するたびに履歴数が増えます" +
+                        "\n ・現在の履歴数「"+db_data1+"」→「"+level+"」"+"\n \n\n\n";
+
+                btn_yes += "視聴";
+                btn_no += "中止";
+            }
+            else{
+                pop_message += "\n\n \n" +
+                        "Do you want to watch the video and increase the operation history?" +
+                        "\n\n\n The number of histories increases every time you watch." +
+                        "\n\n Number of histories「"+db_data1+"」→「"+level+"」"+"\n \n\n\n";
+
+                btn_yes += "YES";
+                btn_no += "N O";
+            }
+
+            //メッセージ
+            vmessage.setText(pop_message);
+            vmessage.setBackgroundColor(Color.DKGRAY);
+            vmessage.setTextColor(Color.WHITE);
+//            vmessage.setTextSize(20);
+
+            //タイトル
+            guide.setTitle("TIPS");
+            guide.setIcon(R.drawable.present);
+            guide.setView(vmessage);
+
+            guide.setPositiveButton(btn_yes, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    /*
+                    if (mRewardedVideoAd.isLoaded()) {
+                        mRewardedVideoAd.show();
+                    }
+
+                     */
+                }
+            });
+            guide.setNegativeButton(btn_no, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    screen_display();
+                }
+            });
+
+            guide.create();
+            guide.show();
+        }
+        else{
+
+        }
+    }
+
 
     /* **************************************************
         シークバー　選択時の処理
@@ -324,6 +485,30 @@ public class MainActivity extends AppCompatActivity {
         */
     }
 
+    public void spinnerSelect(){
+        sp_screen = findViewById(R.id.sp_history);
+        // リスナーを登録
+        sp_screen.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            //　アイテムが選択された時
+            @Override
+            public void onItemSelected(AdapterView parent,
+                                       View view, int position, long id) {
+                if (isStart == false){
+                    spinner_select = position;
+                }
+                screen_display();
+            }
+
+            //　アイテムが選択されなかった
+            public void onNothingSelected(AdapterView adapterView) {
+                //
+            }
+        });
+
+    }
+
+
+
     /* **************************************************
         DB初期ロードおよび設定
     ****************************************************/
@@ -334,6 +519,9 @@ public class MainActivity extends AppCompatActivity {
         sql.append(" isopen");
         sql.append(" ,interval");
         sql.append(" ,brightness");
+        sql.append(" ,data1");
+        sql.append(" ,data2");
+        sql.append(" ,data3");
         sql.append(" FROM appinfo;");
         try {
             Cursor cursor = db.rawQuery(sql.toString(), null);
@@ -343,6 +531,9 @@ public class MainActivity extends AppCompatActivity {
                 db_isopen = cursor.getInt(0);
                 db_interval = cursor.getInt(1);
                 db_brightness = cursor.getInt(2);
+                db_data1 = cursor.getInt(3);
+                db_data2 = cursor.getInt(4);
+                db_data3 = cursor.getInt(5);
             }
         } finally {
             db.close();
@@ -397,6 +588,9 @@ public class MainActivity extends AppCompatActivity {
         insertValues.put("isopen", db_isopen);
         insertValues.put("interval", db_interval);
         insertValues.put("brightness", db_brightness);
+        insertValues.put("data1", db_data1);
+        insertValues.put("data2", db_data2);
+        insertValues.put("data3", db_data3);
         int ret;
         try {
             ret = db.update("appinfo", insertValues, null, null);

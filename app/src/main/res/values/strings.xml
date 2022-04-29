@@ -3,4 +3,15 @@
     <string name="string_always"> Always ON </string>
     <string name="string_interval">Flashing Interval :</string>
     <string name="string_msec">msec</string>
+    <string name="btn_TIPS">TIPS</string>
+
+    <string name="sw_AUTO">Auto ON</string>
+
+    <string-array name="list_screen">
+        <item>Screen Type</item>
+        <item>1:Default</item>
+        <item>2:Gray</item>
+        <item>3:Orange</item>
+    </string-array>
+
 </resources>
