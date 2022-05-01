@@ -3,12 +3,15 @@ package tfsapps.lightblink;
 import androidx.appcompat.app.AppCompatActivity;
 
 //DB関連
+import android.app.AlertDialog;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 // ライト
+import android.graphics.Color;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraManager;
 
@@ -16,10 +19,16 @@ import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RadioButton;
 import android.widget.SeekBar;
+import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -34,14 +43,22 @@ import java.util.TimerTask;
 //広告
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.reward.RewardItem;
+import com.google.android.gms.ads.reward.RewardedVideoAd;
+import com.google.android.gms.ads.reward.RewardedVideoAdListener;
 
-public class MainActivity extends AppCompatActivity {
+
+public class MainActivity extends AppCompatActivity implements RewardedVideoAdListener {
 
     //  DB関連
-    private MyOpenHelper helper;        //DBアクセス
+    public MyOpenHelper helper;        //DBアクセス
     private int db_isopen = 0;          //DB使用したか
     private int db_interval = 0;        //DB点滅間隔
     private int db_brightness = 0;      //DB輝度調整
+    private int db_data1 = 0;           //DBユーザーレベル
+    private int db_data2 = 0;           //DB自動ONのSW
+    private int db_data3 = 0;           //DB画面タイプのSW
 
     //  国設定
     private Locale _local;
@@ -54,16 +71,18 @@ public class MainActivity extends AppCompatActivity {
     private SeekBar seek_blinkinterval; //点滅間隔
     private SeekBar seek_brightness;    //輝度調整
     private boolean isStart = false;
+    private Switch sw_auto;             //トグルＳＷ
+
 
     //  スレッド関連
     private boolean blinking = false;
-    private Timer blinkTimer;					//タイマー用
-    private BlinkingTask blinkTimerTask;		//タイマタスククラス
-    private Handler bHandler = new Handler();   //UI Threadへのpost用ハンドラ
+    public Timer blinkTimer;					//タイマー用
+    public BlinkingTask blinkTimerTask;		//タイマタスククラス
+    public Handler bHandler = new Handler();   //UI Threadへのpost用ハンドラ
 
-    private Timer mainTimer;					//タイマー用
-    private MainTimerTask mainTimerTask;		//タイマタスククラス
-    private Handler mHandler = new Handler();   //UI Threadへのpost用ハンドラ
+    public Timer mainTimer;					//タイマー用
+    public MainTimerTask mainTimerTask;		//タイマタスククラス
+    public Handler mHandler = new Handler();   //UI Threadへのpost用ハンドラ
 
     //  ライト関連
     private CameraManager mCameraManager;
@@ -76,8 +95,22 @@ public class MainActivity extends AppCompatActivity {
     private AudioManager am;
     private int init_volume;    //アプリ起動時の音量値
 
-    // 広告
+    //  広告
     private AdView mAdview;
+
+    //  ユーザーレベル最大５
+    final int LV_MAX = 3;
+
+    // リワード広告
+    private RewardedVideoAd mRewardedVideoAd;
+    /*
+    // テストID
+    private static final String AD_UNIT_ID = "ca-app-pub-3940256099942544/5224354917";
+    // テストID(APPは本物でOK)
+    private static final String APP_ID = "ca-app-pub-4924620089567925~9620469063";
+     */
+    private static final String AD_UNIT_ID = "ca-app-pub-4924620089567925/7856940532";
+    private static final String APP_ID = "ca-app-pub-4924620089567925~9620469063";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,6 +125,10 @@ public class MainActivity extends AppCompatActivity {
         //  音声（むおん）
 //        am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 //        init_volume = am.getStreamVolume(AudioManager.STREAM_MUSIC);
+
+        if (sw_auto == null) {
+            sw_auto = (Switch) findViewById(R.id.sw_autostart);
+        }
 
         //  広告
         mAdview = findViewById(R.id.adView);
@@ -111,7 +148,78 @@ public class MainActivity extends AppCompatActivity {
 
         //  シークバーの選択
         seekSelect();
+
+        // リワード広告
+        MobileAds.initialize(this, APP_ID);
+        mRewardedVideoAd = MobileAds.getRewardedVideoAdInstance(this);
+        mRewardedVideoAd.setRewardedVideoAdListener(this);
+        loadRewardedVideoAd();
     }
+
+    /*
+    リワード広告処理
+ */
+    private void loadRewardedVideoAd() {
+        mRewardedVideoAd.loadAd(AD_UNIT_ID,new AdRequest.Builder().build());
+    }
+
+    @Override
+    public void onRewarded(RewardItem reward) {
+        // Reward the user.
+        int tmp_level = db_data1;
+        db_data1++;
+        if (db_data1 >= LV_MAX){
+            db_data1 = LV_MAX;
+        }
+
+        //ユーザーレベルアップ
+        if (_language.equals("ja")) {
+            Toast.makeText(this, "ポイントGET!：" + (tmp_level) + "  → " + (db_data1), Toast.LENGTH_SHORT).show();
+        }
+        else{
+            Toast.makeText(this, "POINT GET!：" + (tmp_level) + "  → " + (db_data1), Toast.LENGTH_SHORT).show();
+        }
+        AppDBUpdated();
+    }
+
+    @Override
+    public void onRewardedVideoAdLeftApplication() {
+        /*
+        Toast.makeText(this, "onRewardedVideoAdLeftApplication",
+                Toast.LENGTH_SHORT).show();
+         */
+    }
+
+    @Override
+    public void onRewardedVideoAdClosed() {
+//        Toast.makeText(this, "onRewardedVideoAdClosed", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onRewardedVideoAdFailedToLoad(int errorCode) {
+//        Toast.makeText(this, "onRewardedVideoAdFailedToLoad err="+errorCode, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onRewardedVideoAdLoaded() {
+//        Toast.makeText(this, "onRewardedVideoAdLoaded", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onRewardedVideoAdOpened() {
+//        Toast.makeText(this, "onRewardedVideoAdOpened", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onRewardedVideoStarted() {
+//        Toast.makeText(this, "onRewardedVideoStarted", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onRewardedVideoCompleted() {
+//        Toast.makeText(this, "onRewardedVideoCompleted", Toast.LENGTH_SHORT).show();
+    }
+
     /* **************************************************
         各種OS上の動作定義
     ****************************************************/
@@ -130,10 +238,18 @@ public class MainActivity extends AppCompatActivity {
             am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
             init_volume = am.getStreamVolume(AudioManager.STREAM_MUSIC);
         }
+
+        View v = null;
+        //自動ON
+        if (db_data3 > 0){
+            onStartStop(v);
+        }
     }
     @Override
     public void onResume() {
         super.onResume();
+        //動画
+        mRewardedVideoAd.resume(this);
     }
 
     @Override
@@ -141,6 +257,7 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
         //  DB更新
         AppDBUpdated();
+        mRewardedVideoAd.pause(this);
     }
     @Override
     public void onStop(){
@@ -163,6 +280,8 @@ public class MainActivity extends AppCompatActivity {
             am.setStreamVolume(AudioManager.STREAM_MUSIC, init_volume, 0);
             am = null;
         }
+        //動画
+        mRewardedVideoAd.destroy(this);
     }
 
     /* **************************************************
@@ -170,18 +289,17 @@ public class MainActivity extends AppCompatActivity {
     ****************************************************/
     public void screen_display(){
 
+        Button btn_tips = (Button)findViewById(R.id.btn_tips);
+        RadioButton rbtn1 = (RadioButton)findViewById((R.id.rbtn_default));
+        RadioButton rbtn2 = (RadioButton)findViewById((R.id.rbtn_gray));
+        RadioButton rbtn3 = (RadioButton)findViewById((R.id.rbtn_orange));
+        Switch sw1 = (Switch) findViewById(R.id.sw_autostart);
+
         /* SEEK */
         if (seek_blinkinterval == null) {
             seek_blinkinterval = (SeekBar) findViewById(R.id.seek_blink);
         }
         seek_blinkinterval.setProgress(db_interval);
-
-        /*
-        if (seek_brightness == null) {
-            seek_brightness = (SeekBar) findViewById(R.id.seek_brightness);
-        }
-        seek_brightness.setProgress(db_brightness);
-        */
 
         /* IMAGE BUTTON */
         if (img_onoff == null){
@@ -190,23 +308,18 @@ public class MainActivity extends AppCompatActivity {
         if (img_blink == null){
             img_blink = (ImageButton) findViewById(R.id.btn_img_blink);
         }
-        /*
-        if (img_brightness == null){
-            img_brightness = (ImageButton) findViewById(R.id.btn_img_brightness);
-        }
-        */
 
         /* ON時 */
         if (isStart){
-            img_onoff.setImageResource(R.drawable.on_2);
-            img_blink.setImageResource(R.drawable.blink1_off);
-            //img_brightness.setImageResource(R.drawable.bright1_off);
+            btn_tips.setBackgroundTintList(null);
+            btn_tips.setTextColor(getColor(R.color.material_on_background_disabled));
+            btn_tips.setBackgroundResource(R.drawable.btn_grad3);
         }
         /* OFF時 */
         else {
-            img_onoff.setImageResource(R.drawable.off_2);
-            img_blink.setImageResource(R.drawable.blink1_on);
-            //img_brightness.setImageResource(R.drawable.bright1_on);
+            btn_tips.setBackgroundTintList(null);
+            btn_tips.setTextColor(getColor(R.color.purple_700));
+            btn_tips.setBackgroundResource(R.drawable.btn_grad3);
         }
 
         /* TEXT表示 */
@@ -232,26 +345,131 @@ public class MainActivity extends AppCompatActivity {
                         break;
         }
 
-        /*
-        TextView text_volume2 = (TextView)findViewById(R.id.text_brightness);
-        text_volume2.setText(""+db_brightness);
-        */
+        /* スイッチ */
+        if (db_data3 > 0) {
+            sw_auto.setChecked(true);
+        }
+        else{
+            sw_auto.setChecked(false);
+        }
+
+
+        /* ラジオボタンの表示 */
+        switch (db_data2){
+            default:
+            case 1:
+                rbtn1.setChecked(true);
+                rbtn2.setChecked(false);
+                rbtn3.setChecked(false);
+                break;
+            case 2:
+                rbtn1.setChecked(false);
+                rbtn2.setChecked(true);
+                rbtn3.setChecked(false);
+                break;
+            case 3:
+                rbtn1.setChecked(false);
+                rbtn2.setChecked(false);
+                rbtn3.setChecked(true);
+                break;
+        }
+
 
         /* レイアウトのアクティブ表示 */
         LinearLayout lay_normal_11 = (LinearLayout)findViewById(R.id.linearLayout11);
         LinearLayout lay_normal_12 = (LinearLayout)findViewById(R.id.linearLayout12);
         LinearLayout lay_normal_13 = (LinearLayout)findViewById(R.id.linearLayout13);
-        // ON
-        if (isStart == true){
-            lay_normal_11.setBackgroundResource(R.drawable.btn_round);
-            lay_normal_12.setBackgroundResource(R.drawable.btn_grad3);
-            lay_normal_13.setBackgroundResource(R.drawable.btn_grad3);
-        }
-        // OFF
-        else {
-            lay_normal_11.setBackgroundResource(R.drawable.btn_grad3);
-            lay_normal_12.setBackgroundResource(R.drawable.btn_round);
-            lay_normal_13.setBackgroundResource(R.drawable.btn_round);
+        LinearLayout lay_normal_22 = (LinearLayout)findViewById(R.id.linearLayout22);
+
+        switch (db_data2) {
+            default:
+            case 1:
+                text_onoff.setTextColor(getColor(R.color.teal_700));
+                text_status.setTextColor(getColor(R.color.teal_700));
+                text_volume1.setTextColor(getColor(R.color.teal_700));
+                text_status.setTextColor(getColor(R.color.teal_700));
+                rbtn1.setTextColor(getColor(R.color.teal_700));
+                rbtn2.setTextColor(getColor(R.color.teal_700));
+                rbtn3.setTextColor(getColor(R.color.teal_700));
+                sw1.setTextColor(getColor(R.color.teal_700));
+
+                // ON
+                if (isStart == true) {
+                    img_onoff.setImageResource(R.drawable.on_2);
+
+                    lay_normal_11.setBackgroundResource(R.drawable.btn_round);
+                    lay_normal_12.setBackgroundResource(R.drawable.btn_grad3);
+                    lay_normal_13.setBackgroundResource(R.drawable.btn_grad3);
+                    lay_normal_22.setBackgroundResource(R.drawable.btn_grad3);
+                }
+                // OFF
+                else {
+                    img_onoff.setImageResource(R.drawable.off_2);
+
+                    lay_normal_11.setBackgroundResource(R.drawable.btn_grad3);
+                    lay_normal_12.setBackgroundResource(R.drawable.btn_round);
+                    lay_normal_13.setBackgroundResource(R.drawable.btn_round);
+                    lay_normal_22.setBackgroundResource(R.drawable.btn_round);
+                }
+                break;
+            case 2:
+                text_onoff.setTextColor(getColor(R.color.black));
+                text_status.setTextColor(getColor(R.color.black));
+                text_volume1.setTextColor(getColor(R.color.black));
+                text_status.setTextColor(getColor(R.color.black));
+                rbtn1.setTextColor(getColor(R.color.black));
+                rbtn2.setTextColor(getColor(R.color.black));
+                rbtn3.setTextColor(getColor(R.color.black));
+                sw1.setTextColor(getColor(R.color.black));
+
+                // ON
+                if (isStart == true) {
+                    img_onoff.setImageResource(R.drawable.on_3);
+
+                    lay_normal_11.setBackgroundResource(R.drawable.btn_grad1);
+                    lay_normal_12.setBackgroundResource(R.drawable.btn_grad3);
+                    lay_normal_13.setBackgroundResource(R.drawable.btn_grad3);
+                    lay_normal_22.setBackgroundResource(R.drawable.btn_grad3);
+                }
+                // OFF
+                else {
+                    img_onoff.setImageResource(R.drawable.off_3);
+
+                    lay_normal_11.setBackgroundResource(R.drawable.btn_grad3);
+                    lay_normal_12.setBackgroundResource(R.drawable.btn_grad1);
+                    lay_normal_13.setBackgroundResource(R.drawable.btn_grad1);
+                    lay_normal_22.setBackgroundResource(R.drawable.btn_grad1);
+                }
+                break;
+            case 3:
+                text_onoff.setTextColor(getColor(R.color.org_red));
+                text_status.setTextColor(getColor(R.color.org_red));
+                text_volume1.setTextColor(getColor(R.color.org_red));
+                text_status.setTextColor(getColor(R.color.org_red));
+                rbtn1.setTextColor(getColor(R.color.org_red));
+                rbtn2.setTextColor(getColor(R.color.org_red));
+                rbtn3.setTextColor(getColor(R.color.org_red));
+                sw1.setTextColor(getColor(R.color.org_red));
+
+                // ON
+                if (isStart == true) {
+                    img_onoff.setImageResource(R.drawable.on_4);
+
+                    lay_normal_11.setBackgroundResource(R.drawable.btn_grad2);
+                    lay_normal_12.setBackgroundResource(R.drawable.btn_grad3);
+                    lay_normal_13.setBackgroundResource(R.drawable.btn_grad3);
+                    lay_normal_22.setBackgroundResource(R.drawable.btn_grad3);
+                }
+                // OFF
+                else {
+                    img_onoff.setImageResource(R.drawable.off_4);
+
+                    lay_normal_11.setBackgroundResource(R.drawable.btn_grad3);
+                    lay_normal_12.setBackgroundResource(R.drawable.btn_grad2);
+                    lay_normal_13.setBackgroundResource(R.drawable.btn_grad2);
+                    lay_normal_22.setBackgroundResource(R.drawable.btn_grad2);
+                }
+                break;
         }
     }
 
@@ -268,9 +486,91 @@ public class MainActivity extends AppCompatActivity {
             light_ON();
             isStart = true;
         }
-
         screen_display();
     }
+
+
+    /* **************************************************
+        TIPS　ボタン処理
+    ****************************************************/
+    public void onTips(View view){
+        AlertDialog.Builder guide = new AlertDialog.Builder(this);
+        TextView vmessage = new TextView(this);
+        int level = 0;
+        String pop_message = "";
+        String btn_yes = "";
+        String btn_no = "";
+
+        if (isStart == false) {
+
+            //ユーザーレベル算出
+            level = db_data1;
+            level++;
+            if (level >= LV_MAX){
+                level = LV_MAX;
+            }
+
+            if (_language.equals("ja")) {
+
+                pop_message += "\n\n 動画を視聴してポイントをGETしますか？" +
+                        "\n\n（ポイントをGETするとアプリ機能が追加します）" +
+                        "\n　１回視聴：アプリ起動時の自動ON" +
+                        "\n　２回視聴：画面タイプ「色：灰」追加"+
+                        "\n　３回視聴：画面タイプ「色：橙」追加"+
+                        "\n 　現在のポイント「"+db_data1+"」→「"+level+"」"+"\n \n\n\n";
+
+                btn_yes += "視聴";
+                btn_no += "中止";
+            }
+            else{
+                pop_message += "\n\n \n" +
+                        "Do you want to watch the video and get POINTS ?" +
+                        "\n\n\n App function will be added when you get POINTS." +
+                        "\nExample: Automatic ON function, screen type."+
+                        "\n\n POINTS「"+db_data1+"」→「"+level+"」"+"\n \n\n\n";
+
+                btn_yes += "YES";
+                btn_no += "N O";
+            }
+
+            //メッセージ
+            vmessage.setText(pop_message);
+            vmessage.setBackgroundColor(Color.DKGRAY);
+            vmessage.setTextColor(Color.WHITE);
+//            vmessage.setTextSize(20);
+
+            //タイトル
+            guide.setTitle("TIPS");
+            guide.setIcon(R.drawable.present);
+            guide.setView(vmessage);
+
+            guide.setPositiveButton(btn_yes, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+
+                    if (mRewardedVideoAd.isLoaded()) {
+                        mRewardedVideoAd.show();
+                    }
+
+                    //test_make
+//                    db_data1++;
+                }
+            });
+            guide.setNegativeButton(btn_no, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    screen_display();
+                }
+            });
+
+            guide.create();
+            guide.show();
+        }
+        else{
+
+        }
+    }
+
 
     /* **************************************************
         シークバー　選択時の処理
@@ -298,31 +598,76 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
         );
-        /*
-        //  輝度調整
-        seek_brightness = (SeekBar)findViewById(R.id.seek_brightness);
-        seek_brightness.setOnSeekBarChangeListener(
-                new SeekBar.OnSeekBarChangeListener() {
-                    //ツマミをドラッグした時
-                    @Override
-                    public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                        if (isStart == false){
-                            db_brightness = seekBar.getProgress();
-                        }
-                        screen_display();
-                    }
-                    //ツマミに触れた時
-                    @Override
-                    public void onStartTrackingTouch(SeekBar seekBar) {
-                    }
-                    //ツマミを離した時
-                    @Override
-                    public void onStopTrackingTouch(SeekBar seekBar) {
-                    }
-                }
-        );
-        */
     }
+
+    public void screen_type(int index){
+
+        RadioButton btn1 = (RadioButton)findViewById((R.id.rbtn_default));
+        RadioButton btn2 = (RadioButton)findViewById((R.id.rbtn_gray));
+        RadioButton btn3 = (RadioButton)findViewById((R.id.rbtn_orange));
+
+        if (isStart == false){
+            //  画面
+            db_data2 = index;
+        }
+        else{
+            //  操作無効
+        }
+        screen_display();
+    }
+    public void onRbtn_Green(View view){
+        screen_type(1);
+        screen_display();
+    }
+    public void onRbtn_Gray(View view){
+        if (db_data1 >= 2) {
+            screen_type(2);
+        }
+        screen_display();
+    }
+    public void onRbtn_Orange(View view){
+        if (db_data1 >= 3) {
+            screen_type(3);
+        }
+        screen_display();
+    }
+
+    public void onSwAuto(View view){
+        if (db_data1 >= 1) {
+            if (sw_auto.isChecked() == true) {
+                db_data3 = 1;
+            } else {
+                db_data3 = 0;
+            }
+        }
+        screen_display();
+    }
+
+/*
+    public void spinnerSelect(){
+        sp_screen = findViewById(R.id.sp_history);
+
+        // リスナーを登録
+        sp_screen.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            //　アイテムが選択された時
+            @Override
+            public void onItemSelected(AdapterView parent,
+                                       View view, int position, long id) {
+                if (isStart == false){
+                    spinner_select = position;
+                }
+                screen_display();
+            }
+
+            //　アイテムが選択されなかった
+            public void onNothingSelected(AdapterView adapterView) {
+                //
+            }
+        });
+
+    }
+*/
+
 
     /* **************************************************
         DB初期ロードおよび設定
@@ -334,6 +679,9 @@ public class MainActivity extends AppCompatActivity {
         sql.append(" isopen");
         sql.append(" ,interval");
         sql.append(" ,brightness");
+        sql.append(" ,data1");
+        sql.append(" ,data2");
+        sql.append(" ,data3");
         sql.append(" FROM appinfo;");
         try {
             Cursor cursor = db.rawQuery(sql.toString(), null);
@@ -343,6 +691,9 @@ public class MainActivity extends AppCompatActivity {
                 db_isopen = cursor.getInt(0);
                 db_interval = cursor.getInt(1);
                 db_brightness = cursor.getInt(2);
+                db_data1 = cursor.getInt(3);
+                db_data2 = cursor.getInt(4);
+                db_data3 = cursor.getInt(5);
             }
         } finally {
             db.close();
@@ -397,6 +748,9 @@ public class MainActivity extends AppCompatActivity {
         insertValues.put("isopen", db_isopen);
         insertValues.put("interval", db_interval);
         insertValues.put("brightness", db_brightness);
+        insertValues.put("data1", db_data1);
+        insertValues.put("data2", db_data2);
+        insertValues.put("data3", db_data3);
         int ret;
         try {
             ret = db.update("appinfo", insertValues, null, null);
@@ -450,7 +804,7 @@ public class MainActivity extends AppCompatActivity {
         //タスククラスインスタンス生成
         this.mainTimerTask = new MainTimerTask();
         //タイマースケジュール設定＆開始
-        this.mainTimer.schedule(mainTimerTask, 100, 10);
+        this.mainTimer.schedule(mainTimerTask, 100, 1);
     }
     /*
      *   ライトＯＦＦ
