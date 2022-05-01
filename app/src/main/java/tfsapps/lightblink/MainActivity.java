@@ -20,10 +20,12 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RadioButton;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.Switch;
@@ -64,9 +66,8 @@ public class MainActivity extends AppCompatActivity {
     private SeekBar seek_blinkinterval; //点滅間隔
     private SeekBar seek_brightness;    //輝度調整
     private boolean isStart = false;
-    private Spinner sp_screen;          //スピナー
-    private int spinner_select;
     private Switch sw_auto;             //トグルＳＷ
+
 
     //  スレッド関連
     private boolean blinking = false;
@@ -94,6 +95,9 @@ public class MainActivity extends AppCompatActivity {
 
     //  ユーザーレベル最大５
     final int LV_MAX = 5;
+//    private String[] spinnerItems_EN = {"Screen Type", " 1: Default", " 2: Gray", " 3: Oreange"};
+//    private String[] spinnerItems_JP = {"画面タイプ", " 1:デフォルト", " 2: グレイ", " 3: オレンジ"};
+//    private String[] spinnerItems = {};
 
 
     @Override
@@ -130,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
         seekSelect();
 
         //  スピナーの選択
-        spinnerSelect();
+//        spinnerSelect();
     }
     /* **************************************************
         各種OS上の動作定義
@@ -149,6 +153,10 @@ public class MainActivity extends AppCompatActivity {
         if (am == null) {
             am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
             init_volume = am.getStreamVolume(AudioManager.STREAM_MUSIC);
+        }
+
+        if (sw_auto == null) {
+            sw_auto = (Switch) findViewById(R.id.sw_autostart);
         }
     }
     @Override
@@ -191,19 +199,16 @@ public class MainActivity extends AppCompatActivity {
     public void screen_display(){
 
         Button btn_tips = (Button)findViewById(R.id.btn_tips);
+        RadioButton rbtn1 = (RadioButton)findViewById((R.id.rbtn_default));
+        RadioButton rbtn2 = (RadioButton)findViewById((R.id.rbtn_gray));
+        RadioButton rbtn3 = (RadioButton)findViewById((R.id.rbtn_orange));
+        Switch sw1 = (Switch) findViewById(R.id.sw_autostart);
 
         /* SEEK */
         if (seek_blinkinterval == null) {
             seek_blinkinterval = (SeekBar) findViewById(R.id.seek_blink);
         }
         seek_blinkinterval.setProgress(db_interval);
-
-        /*
-        if (seek_brightness == null) {
-            seek_brightness = (SeekBar) findViewById(R.id.seek_brightness);
-        }
-        seek_brightness.setProgress(db_brightness);
-        */
 
         /* IMAGE BUTTON */
         if (img_onoff == null){
@@ -212,28 +217,15 @@ public class MainActivity extends AppCompatActivity {
         if (img_blink == null){
             img_blink = (ImageButton) findViewById(R.id.btn_img_blink);
         }
-        /*
-        if (img_brightness == null){
-            img_brightness = (ImageButton) findViewById(R.id.btn_img_brightness);
-        }
-        */
 
         /* ON時 */
         if (isStart){
-            //img_onoff.setImageResource(R.drawable.on_2);
-            //img_blink.setImageResource(R.drawable.blink1_off);
-            //img_brightness.setImageResource(R.drawable.bright1_off);
-
             btn_tips.setBackgroundTintList(null);
             btn_tips.setTextColor(getColor(R.color.material_on_background_disabled));
             btn_tips.setBackgroundResource(R.drawable.btn_grad3);
         }
         /* OFF時 */
         else {
-            //img_onoff.setImageResource(R.drawable.off_2);
-            //img_blink.setImageResource(R.drawable.blink1_on);
-            //img_brightness.setImageResource(R.drawable.bright1_on);
-
             btn_tips.setBackgroundTintList(null);
             btn_tips.setTextColor(getColor(R.color.purple_700));
             btn_tips.setBackgroundResource(R.drawable.btn_grad3);
@@ -273,9 +265,18 @@ public class MainActivity extends AppCompatActivity {
         LinearLayout lay_normal_13 = (LinearLayout)findViewById(R.id.linearLayout13);
         LinearLayout lay_normal_22 = (LinearLayout)findViewById(R.id.linearLayout22);
 
-        switch (spinner_select) {
+        switch (db_data2) {
             default:
             case 1:
+                text_onoff.setTextColor(getColor(R.color.teal_700));
+                text_status.setTextColor(getColor(R.color.teal_700));
+                text_volume1.setTextColor(getColor(R.color.teal_700));
+                text_status.setTextColor(getColor(R.color.teal_700));
+                rbtn1.setTextColor(getColor(R.color.teal_700));
+                rbtn2.setTextColor(getColor(R.color.teal_700));
+                rbtn3.setTextColor(getColor(R.color.teal_700));
+                sw1.setTextColor(getColor(R.color.teal_700));
+
                 // ON
                 if (isStart == true) {
                     img_onoff.setImageResource(R.drawable.on_2);
@@ -296,6 +297,15 @@ public class MainActivity extends AppCompatActivity {
                 }
                 break;
             case 2:
+                text_onoff.setTextColor(getColor(R.color.black));
+                text_status.setTextColor(getColor(R.color.black));
+                text_volume1.setTextColor(getColor(R.color.black));
+                text_status.setTextColor(getColor(R.color.black));
+                rbtn1.setTextColor(getColor(R.color.black));
+                rbtn2.setTextColor(getColor(R.color.black));
+                rbtn3.setTextColor(getColor(R.color.black));
+                sw1.setTextColor(getColor(R.color.black));
+
                 // ON
                 if (isStart == true) {
                     img_onoff.setImageResource(R.drawable.on_3);
@@ -316,6 +326,15 @@ public class MainActivity extends AppCompatActivity {
                 }
                 break;
             case 3:
+                text_onoff.setTextColor(getColor(R.color.org_red));
+                text_status.setTextColor(getColor(R.color.org_red));
+                text_volume1.setTextColor(getColor(R.color.org_red));
+                text_status.setTextColor(getColor(R.color.org_red));
+                rbtn1.setTextColor(getColor(R.color.org_red));
+                rbtn2.setTextColor(getColor(R.color.org_red));
+                rbtn3.setTextColor(getColor(R.color.org_red));
+                sw1.setTextColor(getColor(R.color.org_red));
+
                 // ON
                 if (isStart == true) {
                     img_onoff.setImageResource(R.drawable.on_4);
@@ -485,8 +504,53 @@ public class MainActivity extends AppCompatActivity {
         */
     }
 
+    public void screen_type(int index){
+
+        RadioButton btn1 = (RadioButton)findViewById((R.id.rbtn_default));
+        RadioButton btn2 = (RadioButton)findViewById((R.id.rbtn_gray));
+        RadioButton btn3 = (RadioButton)findViewById((R.id.rbtn_orange));
+
+        if (isStart == false){
+            //  画面
+            db_data2 = index;
+        }
+        else{
+            //  操作無効
+            switch (db_data2){
+                default:
+                case 1:
+                    btn1.setChecked(true);
+                    btn2.setChecked(false);
+                    btn3.setChecked(false);
+                    break;
+                case 2:
+                    btn1.setChecked(false);
+                    btn2.setChecked(true);
+                    btn3.setChecked(false);
+                    break;
+                case 3:
+                    btn1.setChecked(false);
+                    btn2.setChecked(false);
+                    btn3.setChecked(true);
+                    break;
+            }
+        }
+        screen_display();
+    }
+    public void onRbtn_Green(View view){
+        screen_type(1);
+    }
+    public void onRbtn_Gray(View view){
+        screen_type(2);
+    }
+    public void onRbtn_Orange(View view){
+        screen_type(3);
+    }
+
+/*
     public void spinnerSelect(){
         sp_screen = findViewById(R.id.sp_history);
+
         // リスナーを登録
         sp_screen.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             //　アイテムが選択された時
@@ -506,7 +570,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
     }
-
+*/
 
 
     /* **************************************************

@@ -7,6 +7,10 @@
 
     <string name="sw_AUTO">Auto ON</string>
 
+    <string name="screen_Green">Green</string>
+    <string name="screen_Gray">Gray</string>
+    <string name="screen_Orange">Orange</string>
+
     <string-array name="list_screen">
         <item>Screen Type</item>
         <item>1:Default</item>

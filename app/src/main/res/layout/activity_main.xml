@@ -234,18 +234,49 @@
         android:background="@color/teal_700"
         android:orientation="horizontal">
 
-        <Spinner
-            android:id="@+id/sp_history"
-            android:layout_marginTop="5dp"
-            android:layout_marginStart="5dp"
-            android:layout_marginBottom="5dp"
+        <RadioGroup
+            android:id="@+id/RadioGroupScreenType"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="3"
-            android:backgroundTint="@null"
-            android:entries="@array/list_screen"
-            android:textStyle="bold"
-            android:spinnerMode="dialog"/>
+            android:layout_weight="5"
+            android:layout_marginEnd="3dp"
+            android:layout_marginStart="3dp"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/rbtn_default"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:onClick="onRbtn_Green"
+                android:text="@string/screen_Green"
+                android:textSize="16dp"
+                android:textStyle="bold"
+                android:textColor="@color/teal_700"
+                tools:ignore="TouchTargetSizeCheck" />
+
+            <RadioButton
+                android:id="@+id/rbtn_gray"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:onClick="onRbtn_Gray"
+                android:text="@string/screen_Gray"
+                android:textSize="16dp"
+                android:textStyle="bold"
+                android:textColor="@color/teal_700"
+                tools:ignore="TouchTargetSizeCheck" />
+
+            <RadioButton
+                android:id="@+id/rbtn_orange"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:onClick="onRbtn_Orange"
+                android:text="@string/screen_Orange"
+                android:textSize="16dp"
+                android:textStyle="bold"
+                android:textColor="@color/teal_700"
+                tools:ignore="TouchTargetSizeCheck" />
+
+        </RadioGroup>
 
         <Switch
             android:id="@+id/sw_autostart"
@@ -254,9 +285,12 @@
             android:layout_marginBottom="5dp"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="1"
+            android:layout_weight="2"
+            android:backgroundTint="@null"
             android:text="@string/sw_AUTO"
+            android:textColor="@color/teal_700"
             android:textStyle="bold"
+            android:textSize="16dp"
             tools:ignore="TouchTargetSizeCheck" />
 
     </LinearLayout>

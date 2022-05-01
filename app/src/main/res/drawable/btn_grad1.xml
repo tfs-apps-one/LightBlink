@@ -6,8 +6,8 @@
         android:color="#ff222222"
         android:width="2dp"/>
     <gradient
-        android:startColor="#ff888888"
-        android:endColor="#ffdddddd"
+        android:startColor="#ffaaaaaa"
+        android:endColor="#ffcccccc"
         android:angle="90" />
 
 <!--    <gradient
