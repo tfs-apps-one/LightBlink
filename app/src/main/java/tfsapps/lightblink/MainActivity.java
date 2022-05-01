@@ -43,8 +43,13 @@ import java.util.TimerTask;
 //広告
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.reward.RewardItem;
+import com.google.android.gms.ads.reward.RewardedVideoAd;
+import com.google.android.gms.ads.reward.RewardedVideoAdListener;
 
-public class MainActivity extends AppCompatActivity {
+
+public class MainActivity extends AppCompatActivity implements RewardedVideoAdListener {
 
     //  DB関連
     public MyOpenHelper helper;        //DBアクセス
@@ -94,11 +99,18 @@ public class MainActivity extends AppCompatActivity {
     private AdView mAdview;
 
     //  ユーザーレベル最大５
-    final int LV_MAX = 5;
-//    private String[] spinnerItems_EN = {"Screen Type", " 1: Default", " 2: Gray", " 3: Oreange"};
-//    private String[] spinnerItems_JP = {"画面タイプ", " 1:デフォルト", " 2: グレイ", " 3: オレンジ"};
-//    private String[] spinnerItems = {};
+    final int LV_MAX = 3;
 
+    // リワード広告
+    private RewardedVideoAd mRewardedVideoAd;
+    /*
+    // テストID
+    private static final String AD_UNIT_ID = "ca-app-pub-3940256099942544/5224354917";
+    // テストID(APPは本物でOK)
+    private static final String APP_ID = "ca-app-pub-4924620089567925~9620469063";
+     */
+    private static final String AD_UNIT_ID = "ca-app-pub-4924620089567925/7856940532";
+    private static final String APP_ID = "ca-app-pub-4924620089567925~9620469063";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -113,6 +125,10 @@ public class MainActivity extends AppCompatActivity {
         //  音声（むおん）
 //        am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 //        init_volume = am.getStreamVolume(AudioManager.STREAM_MUSIC);
+
+        if (sw_auto == null) {
+            sw_auto = (Switch) findViewById(R.id.sw_autostart);
+        }
 
         //  広告
         mAdview = findViewById(R.id.adView);
@@ -133,9 +149,77 @@ public class MainActivity extends AppCompatActivity {
         //  シークバーの選択
         seekSelect();
 
-        //  スピナーの選択
-//        spinnerSelect();
+        // リワード広告
+        MobileAds.initialize(this, APP_ID);
+        mRewardedVideoAd = MobileAds.getRewardedVideoAdInstance(this);
+        mRewardedVideoAd.setRewardedVideoAdListener(this);
+        loadRewardedVideoAd();
     }
+
+    /*
+    リワード広告処理
+ */
+    private void loadRewardedVideoAd() {
+        mRewardedVideoAd.loadAd(AD_UNIT_ID,new AdRequest.Builder().build());
+    }
+
+    @Override
+    public void onRewarded(RewardItem reward) {
+        // Reward the user.
+        int tmp_level = db_data1;
+        db_data1++;
+        if (db_data1 >= LV_MAX){
+            db_data1 = LV_MAX;
+        }
+
+        //ユーザーレベルアップ
+        if (_language.equals("ja")) {
+            Toast.makeText(this, "ポイントGET!：" + (tmp_level) + "  → " + (db_data1), Toast.LENGTH_SHORT).show();
+        }
+        else{
+            Toast.makeText(this, "POINT GET!：" + (tmp_level) + "  → " + (db_data1), Toast.LENGTH_SHORT).show();
+        }
+        AppDBUpdated();
+    }
+
+    @Override
+    public void onRewardedVideoAdLeftApplication() {
+        /*
+        Toast.makeText(this, "onRewardedVideoAdLeftApplication",
+                Toast.LENGTH_SHORT).show();
+         */
+    }
+
+    @Override
+    public void onRewardedVideoAdClosed() {
+//        Toast.makeText(this, "onRewardedVideoAdClosed", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onRewardedVideoAdFailedToLoad(int errorCode) {
+//        Toast.makeText(this, "onRewardedVideoAdFailedToLoad err="+errorCode, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onRewardedVideoAdLoaded() {
+//        Toast.makeText(this, "onRewardedVideoAdLoaded", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onRewardedVideoAdOpened() {
+//        Toast.makeText(this, "onRewardedVideoAdOpened", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onRewardedVideoStarted() {
+//        Toast.makeText(this, "onRewardedVideoStarted", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onRewardedVideoCompleted() {
+//        Toast.makeText(this, "onRewardedVideoCompleted", Toast.LENGTH_SHORT).show();
+    }
+
     /* **************************************************
         各種OS上の動作定義
     ****************************************************/
@@ -155,13 +239,17 @@ public class MainActivity extends AppCompatActivity {
             init_volume = am.getStreamVolume(AudioManager.STREAM_MUSIC);
         }
 
-        if (sw_auto == null) {
-            sw_auto = (Switch) findViewById(R.id.sw_autostart);
+        View v = null;
+        //自動ON
+        if (db_data3 > 0){
+            onStartStop(v);
         }
     }
     @Override
     public void onResume() {
         super.onResume();
+        //動画
+        mRewardedVideoAd.resume(this);
     }
 
     @Override
@@ -169,6 +257,7 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
         //  DB更新
         AppDBUpdated();
+        mRewardedVideoAd.pause(this);
     }
     @Override
     public void onStop(){
@@ -191,6 +280,8 @@ public class MainActivity extends AppCompatActivity {
             am.setStreamVolume(AudioManager.STREAM_MUSIC, init_volume, 0);
             am = null;
         }
+        //動画
+        mRewardedVideoAd.destroy(this);
     }
 
     /* **************************************************
@@ -254,10 +345,35 @@ public class MainActivity extends AppCompatActivity {
                         break;
         }
 
-        /*
-        TextView text_volume2 = (TextView)findViewById(R.id.text_brightness);
-        text_volume2.setText(""+db_brightness);
-        */
+        /* スイッチ */
+        if (db_data3 > 0) {
+            sw_auto.setChecked(true);
+        }
+        else{
+            sw_auto.setChecked(false);
+        }
+
+
+        /* ラジオボタンの表示 */
+        switch (db_data2){
+            default:
+            case 1:
+                rbtn1.setChecked(true);
+                rbtn2.setChecked(false);
+                rbtn3.setChecked(false);
+                break;
+            case 2:
+                rbtn1.setChecked(false);
+                rbtn2.setChecked(true);
+                rbtn3.setChecked(false);
+                break;
+            case 3:
+                rbtn1.setChecked(false);
+                rbtn2.setChecked(false);
+                rbtn3.setChecked(true);
+                break;
+        }
+
 
         /* レイアウトのアクティブ表示 */
         LinearLayout lay_normal_11 = (LinearLayout)findViewById(R.id.linearLayout11);
@@ -370,7 +486,6 @@ public class MainActivity extends AppCompatActivity {
             light_ON();
             isStart = true;
         }
-
         screen_display();
     }
 
@@ -397,18 +512,22 @@ public class MainActivity extends AppCompatActivity {
 
             if (_language.equals("ja")) {
 
-                pop_message += "\n\n 動画を視聴して操作履歴を増やしますか？" +
-                        "\n\n\n ・視聴するたびに履歴数が増えます" +
-                        "\n ・現在の履歴数「"+db_data1+"」→「"+level+"」"+"\n \n\n\n";
+                pop_message += "\n\n 動画を視聴してポイントをGETしますか？" +
+                        "\n\n（ポイントをGETするとアプリ機能が追加します）" +
+                        "\n　１回視聴：アプリ起動時の自動ON" +
+                        "\n　２回視聴：画面タイプ「色：灰」追加"+
+                        "\n　３回視聴：画面タイプ「色：橙」追加"+
+                        "\n 　現在のポイント「"+db_data1+"」→「"+level+"」"+"\n \n\n\n";
 
                 btn_yes += "視聴";
                 btn_no += "中止";
             }
             else{
                 pop_message += "\n\n \n" +
-                        "Do you want to watch the video and increase the operation history?" +
-                        "\n\n\n The number of histories increases every time you watch." +
-                        "\n\n Number of histories「"+db_data1+"」→「"+level+"」"+"\n \n\n\n";
+                        "Do you want to watch the video and get POINTS ?" +
+                        "\n\n\n App function will be added when you get POINTS." +
+                        "\nExample: Automatic ON function, screen type."+
+                        "\n\n POINTS「"+db_data1+"」→「"+level+"」"+"\n \n\n\n";
 
                 btn_yes += "YES";
                 btn_no += "N O";
@@ -428,12 +547,13 @@ public class MainActivity extends AppCompatActivity {
             guide.setPositiveButton(btn_yes, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    /*
+
                     if (mRewardedVideoAd.isLoaded()) {
                         mRewardedVideoAd.show();
                     }
 
-                     */
+                    //test_make
+//                    db_data1++;
                 }
             });
             guide.setNegativeButton(btn_no, new DialogInterface.OnClickListener() {
@@ -478,30 +598,6 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
         );
-        /*
-        //  輝度調整
-        seek_brightness = (SeekBar)findViewById(R.id.seek_brightness);
-        seek_brightness.setOnSeekBarChangeListener(
-                new SeekBar.OnSeekBarChangeListener() {
-                    //ツマミをドラッグした時
-                    @Override
-                    public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                        if (isStart == false){
-                            db_brightness = seekBar.getProgress();
-                        }
-                        screen_display();
-                    }
-                    //ツマミに触れた時
-                    @Override
-                    public void onStartTrackingTouch(SeekBar seekBar) {
-                    }
-                    //ツマミを離した時
-                    @Override
-                    public void onStopTrackingTouch(SeekBar seekBar) {
-                    }
-                }
-        );
-        */
     }
 
     public void screen_type(int index){
@@ -516,35 +612,35 @@ public class MainActivity extends AppCompatActivity {
         }
         else{
             //  操作無効
-            switch (db_data2){
-                default:
-                case 1:
-                    btn1.setChecked(true);
-                    btn2.setChecked(false);
-                    btn3.setChecked(false);
-                    break;
-                case 2:
-                    btn1.setChecked(false);
-                    btn2.setChecked(true);
-                    btn3.setChecked(false);
-                    break;
-                case 3:
-                    btn1.setChecked(false);
-                    btn2.setChecked(false);
-                    btn3.setChecked(true);
-                    break;
-            }
         }
         screen_display();
     }
     public void onRbtn_Green(View view){
         screen_type(1);
+        screen_display();
     }
     public void onRbtn_Gray(View view){
-        screen_type(2);
+        if (db_data1 >= 2) {
+            screen_type(2);
+        }
+        screen_display();
     }
     public void onRbtn_Orange(View view){
-        screen_type(3);
+        if (db_data1 >= 3) {
+            screen_type(3);
+        }
+        screen_display();
+    }
+
+    public void onSwAuto(View view){
+        if (db_data1 >= 1) {
+            if (sw_auto.isChecked() == true) {
+                db_data3 = 1;
+            } else {
+                db_data3 = 0;
+            }
+        }
+        screen_display();
     }
 
 /*
@@ -708,7 +804,7 @@ public class MainActivity extends AppCompatActivity {
         //タスククラスインスタンス生成
         this.mainTimerTask = new MainTimerTask();
         //タイマースケジュール設定＆開始
-        this.mainTimer.schedule(mainTimerTask, 100, 10);
+        this.mainTimer.schedule(mainTimerTask, 100, 1);
     }
     /*
      *   ライトＯＦＦ

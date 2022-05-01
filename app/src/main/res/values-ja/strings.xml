@@ -7,9 +7,9 @@
 
     <string name="sw_AUTO">自動ON</string>
 
-    <string name="screen_Green">色：緑</string>
-    <string name="screen_Gray">色：グレイ</string>
-    <string name="screen_Orange">色：オレンジ</string>
+    <string name="screen_Green">色:緑</string>
+    <string name="screen_Gray">色:灰</string>
+    <string name="screen_Orange">色:橙</string>
 
     <string-array name="list_screen">
         <item>画面タイプ</item>
