@@ -51,7 +51,8 @@ import com.google.android.gms.ads.OnUserEarnedRewardListener;
 import com.google.android.gms.ads.rewarded.RewardItem;
 import com.google.android.gms.ads.rewarded.RewardedAd;
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback;
-
+import com.google.android.gms.ads.initialization.InitializationStatus;
+import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
 
 //public class MainActivity extends AppCompatActivity implements RewardedVideoAdListener {
 public class MainActivity extends AppCompatActivity {
@@ -109,13 +110,13 @@ public class MainActivity extends AppCompatActivity {
     // リワード広告
     public LoadAdError adError;
     public RewardedAd rewardedAd;
-//    private RewardedVideoAd mRewardedVideoAd;
     /*
     // テストID
     private static final String AD_UNIT_ID = "ca-app-pub-3940256099942544/5224354917";
     // テストID(APPは本物でOK)
     private static final String APP_ID = "ca-app-pub-4924620089567925~9620469063";
-     */
+    */
+
     private static final String AD_UNIT_ID = "ca-app-pub-4924620089567925/7856940532";
     private static final String APP_ID = "ca-app-pub-4924620089567925~9620469063";
 
@@ -138,9 +139,14 @@ public class MainActivity extends AppCompatActivity {
         }
 
         //  広告
-        mAdview = findViewById(R.id.adView);
-        AdRequest adRequest = new AdRequest.Builder().build();
-        mAdview.loadAd(adRequest);
+        MobileAds.initialize(this, initializationStatus -> {
+            mAdview = findViewById(R.id.adView);
+            AdRequest adRequest = new AdRequest.Builder().build();
+            mAdview.loadAd(adRequest);
+        });
+//        mAdview = findViewById(R.id.adView);
+//        AdRequest adRequest = new AdRequest.Builder().build();
+//        mAdview.loadAd(adRequest);
 
         //  カメラ初期化
         mCameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
@@ -153,9 +159,16 @@ public class MainActivity extends AppCompatActivity {
             }
         }, new Handler());
 
+        RdLoading();
+
         //  シークバーの選択
         seekSelect();
+    }
 
+    /*
+    リワード広告処理
+        */
+    public void RdLoading(){
         // リワード広告
         RewardedAd.load(this,
                 AD_UNIT_ID,
@@ -181,14 +194,10 @@ public class MainActivity extends AppCompatActivity {
 //                        Log.d("TAG", "The rewarded ad wasn't loaded yet.");
                     }
                 });
-
     }
 
-    /*
-    リワード広告処理
-        */
-
     public void RdShow(){
+
         if (rewardedAd != null) {
             Activity activityContext = MainActivity.this;
             rewardedAd.show(activityContext, new OnUserEarnedRewardListener() {
@@ -204,6 +213,7 @@ public class MainActivity extends AppCompatActivity {
         } else {
 //            Log.d("TAG", "The rewarded ad wasn't ready yet.");
         }
+
     }
 
     public void RdPresent() {
@@ -221,6 +231,7 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "POINT GET!：" + (tmp_level) + "  → " + (db_data1), Toast.LENGTH_SHORT).show();
         }
         AppDBUpdated();
+        RdLoading();
     }
 
 
