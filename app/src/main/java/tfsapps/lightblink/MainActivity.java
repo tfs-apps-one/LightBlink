@@ -171,12 +171,28 @@ public class MainActivity extends AppCompatActivity {
 
         //TODO:lock画面
         lockOverlay = findViewById(R.id.lockOverlay);
-        // 長押しでロック解除する設定
-        lockOverlay.setOnLongClickListener(new View.OnLongClickListener() {
+        // 5秒間の長押しでロック解除する設定
+        lockOverlay.setOnTouchListener(new View.OnTouchListener() {
+            private Handler handler = new Handler();
+            private Runnable longPressRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    unlockMode();
+                }
+            };
+
             @Override
-            public boolean onLongClick(View v) {
-                unlockMode();
-                return true;
+            public boolean onTouch(View v, android.view.MotionEvent event) {
+                switch (event.getAction()) {
+                    case android.view.MotionEvent.ACTION_DOWN:
+                        handler.postDelayed(longPressRunnable, 3000);
+                        return true;
+                    case android.view.MotionEvent.ACTION_UP:
+                    case android.view.MotionEvent.ACTION_CANCEL:
+                        handler.removeCallbacks(longPressRunnable);
+                        return true;
+                }
+                return false;
             }
         });
     }

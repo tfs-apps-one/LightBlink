@@ -18,6 +18,6 @@
         <item>3:Orange</item>
     </string-array>
 
-    <string name="screen_lock">Screen is locked\n(press and hold to unlock)</string>
+    <string name="screen_lock">Screen is locked\n(Press and hold for 3 seconds to unlock)</string>
 
 </resources>
