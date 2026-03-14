@@ -2,6 +2,7 @@ package tfsapps.lightblink;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 
 //DB関連
 import android.app.Activity;
@@ -21,6 +22,7 @@ import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -120,6 +122,9 @@ public class MainActivity extends AppCompatActivity {
     private static final String AD_UNIT_ID = "ca-app-pub-4924620089567925/7856940532";
     private static final String APP_ID = "ca-app-pub-4924620089567925~9620469063";
 
+    //TODO:lock画面
+    private ConstraintLayout lockOverlay;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -163,6 +168,33 @@ public class MainActivity extends AppCompatActivity {
 
         //  シークバーの選択
         seekSelect();
+
+        //TODO:lock画面
+        lockOverlay = findViewById(R.id.lockOverlay);
+        // 5秒間の長押しでロック解除する設定
+        lockOverlay.setOnTouchListener(new View.OnTouchListener() {
+            private Handler handler = new Handler();
+            private Runnable longPressRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    unlockMode();
+                }
+            };
+
+            @Override
+            public boolean onTouch(View v, android.view.MotionEvent event) {
+                switch (event.getAction()) {
+                    case android.view.MotionEvent.ACTION_DOWN:
+                        handler.postDelayed(longPressRunnable, 3000);
+                        return true;
+                    case android.view.MotionEvent.ACTION_UP:
+                    case android.view.MotionEvent.ACTION_CANCEL:
+                        handler.removeCallbacks(longPressRunnable);
+                        return true;
+                }
+                return false;
+            }
+        });
     }
 
     /*
@@ -494,6 +526,8 @@ public class MainActivity extends AppCompatActivity {
     ****************************************************/
     public void onStartStop(View view){
 
+        String mess = "";
+
         if (isStart){
             light_OFF();
             isStart = false;
@@ -501,6 +535,15 @@ public class MainActivity extends AppCompatActivity {
         else{
             light_ON();
             isStart = true;
+
+            // 注意
+            if (_language.equals("ja")) {
+                mess = "点滅を継続する場合、画面左上のロック機能（鍵ｱｲｺﾝ）の使用を推奨します";
+            }
+            else{
+                mess = "If the flashing continues, we recommend using the lock function (lock icon) in the upper left corner of the screen.";
+            }
+            Toast.makeText(this, mess, Toast.LENGTH_SHORT).show();
         }
         screen_display();
     }
@@ -898,4 +941,45 @@ public class MainActivity extends AppCompatActivity {
             });
         }
     }
+
+
+    //TODO:lock画面
+    // ロック開始（ボタンなどから呼び出す用）
+    public void startLockMode(View view) {
+        // 1. 画面を常時点灯に固定
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+        // 2. 画面の輝度を最小にする（節電）
+        WindowManager.LayoutParams lp = getWindow().getAttributes();
+        lp.screenBrightness = 0.03f; // 0.01がほぼ真っ暗
+        getWindow().setAttributes(lp);
+
+        // 3. ロック用レイアウトを表示
+        lockOverlay.setVisibility(View.VISIBLE);
+
+        String mess = "";
+        if (_language.equals("ja")) {
+            mess = "画面を【ロック】しました";
+        }
+        else{
+            mess = "The screen has been locked";
+        }
+        Toast.makeText(this, mess, Toast.LENGTH_SHORT).show();
+    }
+
+    // ロック解除
+    public void unlockMode() {
+        // 1. 常時点灯フラグを解除（システムのタイムアウト設定に戻る）
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+        // 2. 輝度を元に戻す
+        WindowManager.LayoutParams lp = getWindow().getAttributes();
+        lp.screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE;
+        getWindow().setAttributes(lp);
+
+        // 3. ロック用レイアウトを隠す
+        lockOverlay.setVisibility(View.GONE);
+    }
+
+
 }
