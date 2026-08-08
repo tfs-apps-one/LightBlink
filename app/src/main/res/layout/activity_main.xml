@@ -5,353 +5,267 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/bg_dark"
     android:fitsSystemWindows="true"
     tools:context=".MainActivity">
 
+    <!-- Top Bar -->
     <LinearLayout
-        android:id="@+id/linearLayout21"
+        android:id="@+id/topBar"
         android:layout_width="match_parent"
-        android:layout_marginStart="5dp"
-        android:layout_marginEnd="5dp"
         android:layout_height="60dp"
-        android:backgroundTint="@null"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="20dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:orientation="horizontal">
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toTopOf="parent">
 
-    <ImageButton
-        android:id="@+id/btn_lock"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_marginTop="1dp"
-        android:layout_marginEnd="5dp"
-        android:layout_marginBottom="1dp"
-        android:layout_weight="1"
-        android:background="@null"
-        android:onClick="startLockMode"
-        android:src="@drawable/lock"
-        tools:ignore="SpeakableTextPresentCheck" />
+        <ImageButton
+            android:id="@+id/btn_lock"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center_vertical"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:onClick="startLockMode"
+            android:src="@drawable/lock"
+            app:tint="@color/neon_cyan"
+            tools:ignore="SpeakableTextPresentCheck" />
 
-    <TextView
-        android:id="@+id/text_space"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="2"
-        android:layout_marginTop="5dp"
-        android:layout_marginStart="5dp"
-        android:layout_marginBottom="5dp"
-        android:layout_marginEnd="5dp"
-        android:gravity="center|left"
-        android:textColor="@color/teal_700"
-        android:text=""
-        android:textStyle="bold"
-        android:textSize="15dp"/>
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
 
-    <Button
-        android:id="@+id/btn_tips"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_marginTop="5dp"
-        android:layout_marginBottom="5dp"
-        android:layout_weight="1"
-        android:background="@color/cardview_shadow_start_color"
-        android:onClick="onTips"
-        android:text="@string/btn_TIPS"
-        android:textColor="@color/teal_700"
-        android:textStyle="bold"
-        android:textSize="20dp"
-        tools:ignore="TouchTargetSizeCheck" />
+        <Button
+            android:id="@+id/btn_help"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginEnd="8dp"
+            android:backgroundTint="@color/card_dark"
+            android:onClick="onHelpClick"
+            android:text="?"
+            android:textColor="@color/neon_cyan"
+            android:textSize="20sp"
+            android:textStyle="bold" />
 
+        <Button
+            android:id="@+id/btn_tips"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:layout_gravity="center_vertical"
+            android:backgroundTint="@color/card_dark"
+            android:onClick="onTips"
+            android:text="@string/btn_TIPS"
+            android:textColor="@color/neon_cyan"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            tools:ignore="TouchTargetSizeCheck" />
     </LinearLayout>
 
+    <!-- Main Light Controls (Replaces linearLayout11) -->
     <LinearLayout
         android:id="@+id/linearLayout11"
-        android:layout_width="match_parent"
-        android:layout_marginStart="5dp"
-        android:layout_marginEnd="5dp"
-        android:layout_height="150dp"
-        android:backgroundTint="@null"
-        android:layout_alignParentStart="true"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout21"
-        android:orientation="horizontal">
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="16dp"
+        android:background="@color/card_dark"
+        android:elevation="4dp"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="24dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/topBar">
 
         <ImageButton
             android:id="@+id/btn_img_onoff"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_marginStart="0dp"
-            android:layout_marginTop="0dp"
-            android:layout_marginEnd="1dp"
-            android:layout_marginBottom="0dp"
-            android:layout_weight="5"
-            android:background="@null"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
             android:onClick="onStartStop"
             android:scaleType="fitCenter"
             tools:ignore="SpeakableTextPresentCheck" />
 
         <TextView
             android:id="@+id/text_onoff"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="2"
-            android:layout_marginTop="5dp"
-            android:layout_marginStart="5dp"
-            android:layout_marginBottom="5dp"
-            android:layout_marginEnd="5dp"
-            android:gravity="center|left"
-            android:textColor="@color/teal_700"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
             android:text="OFF"
-            android:textStyle="bold"
-            android:textSize="35dp"/>
+            android:textColor="@color/neon_cyan"
+            android:textSize="32sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btn_sos"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="@color/neon_red_dark"
+            android:onClick="onSOSClick"
+            android:text="SOS"
+            android:textColor="@color/text_primary"
+            android:textSize="20sp"
+            android:textStyle="bold" />
 
     </LinearLayout>
 
+    <!-- Blink Interval (Replaces linearLayout12 & 13) -->
     <LinearLayout
         android:id="@+id/linearLayout12"
-        android:layout_width="match_parent"
-        android:layout_marginStart="5dp"
-        android:layout_marginEnd="5dp"
-        android:layout_marginTop="1dp"
-        android:layout_height="65dp"
-        android:backgroundTint="@null"
-        android:layout_alignParentStart="true"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout11"
-        android:orientation="horizontal">
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:background="@color/card_dark"
+        android:elevation="4dp"
+        android:orientation="vertical"
+        android:padding="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/linearLayout11">
 
-        <ImageButton
-            android:id="@+id/btn_img_blink"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_marginStart="20dp"
-            android:layout_marginTop="0dp"
-            android:layout_marginEnd="1dp"
-            android:layout_marginBottom="0dp"
-            android:layout_weight="1"
-            android:background="@null"
-            android:scaleType="fitCenter"
-            tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
+        <LinearLayout
+            android:id="@+id/linearLayout13"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+            
+            <TextView
+                android:id="@+id/text_status"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="1"
+                android:textColor="@color/neon_cyan"
+                android:textSize="18sp"
+                android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/text_blink"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:layout_marginTop="5dp"
-            android:layout_marginStart="1dp"
-            android:layout_marginBottom="5dp"
-            android:layout_marginEnd="5dp"
-            android:gravity="center|right"
-            android:textColor="@color/teal_700"
-            android:text="1"
-            android:textStyle="bold"
-            android:textSize="23dp"/>
+            <TextView
+                android:id="@+id/text_blink"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="1"
+                android:textColor="@color/neon_cyan"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+        </LinearLayout>
 
         <SeekBar
             android:id="@+id/seek_blink"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="8"
-            android:layout_marginTop="5dp"
-            android:layout_marginStart="5dp"
-            android:layout_marginBottom="5dp"
-            android:layout_marginEnd="20dp"
-            android:progress="5"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
             android:max="15"
-            android:progressBackgroundTint="@color/design_default_color_primary_variant"/>
+            android:progress="5"
+            android:progressTint="@color/neon_cyan"
+            android:thumbTint="@color/neon_cyan" />
 
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/linearLayout13"
-        android:layout_width="match_parent"
-        android:layout_marginStart="5dp"
-        android:layout_marginEnd="5dp"
-        android:layout_marginTop="1dp"
-        android:layout_height="65dp"
-        android:backgroundTint="@null"
-        android:layout_alignParentStart="true"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout12"
-        android:orientation="horizontal">
-
-        <TextView
-            android:id="@+id/text_status"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:layout_marginTop="5dp"
-            android:layout_marginStart="1dp"
-            android:layout_marginBottom="5dp"
-            android:layout_marginEnd="5dp"
-            android:gravity="center"
-            android:textColor="@color/teal_700"
-            android:text="1"
-            android:textStyle="bold"
-            android:textSize="20dp"/>
-        <!--
-        <ImageButton
-            android:id="@+id/btn_img_brightness"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_marginStart="20dp"
-            android:layout_marginTop="0dp"
-            android:layout_marginEnd="1dp"
-            android:layout_marginBottom="0dp"
-            android:layout_weight="1"
-            android:background="@null"
-            android:scaleType="fitCenter"
-            tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
-
-        <TextView
-            android:id="@+id/text_brightness"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:layout_marginTop="5dp"
-            android:layout_marginStart="1dp"
-            android:layout_marginBottom="5dp"
-            android:layout_marginEnd="5dp"
-            android:gravity="center|right"
-            android:textColor="@color/teal_700"
-            android:text="1"
-            android:textStyle="bold"
-            android:textSize="20dp"/>
-
-        <SeekBar
-            android:id="@+id/seek_brightness"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="8"
-            android:layout_marginTop="5dp"
-            android:layout_marginStart="5dp"
-            android:layout_marginBottom="5dp"
-            android:layout_marginEnd="20dp"
-            android:progress="5"
-            android:max="15"
-            android:progressBackgroundTint="@color/design_default_color_primary_variant"/>
-            -->
-
-    </LinearLayout>
-
-
+    <!-- Settings (Replaces linearLayout22) -->
     <LinearLayout
         android:id="@+id/linearLayout22"
-        android:layout_marginStart="5dp"
-        android:layout_marginEnd="5dp"
-        android:layout_marginTop="1dp"
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:layout_alignParentStart="true"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout13"
-        android:background="@color/teal_700"
-        android:orientation="horizontal">
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:background="@color/card_dark"
+        android:elevation="4dp"
+        android:orientation="vertical"
+        android:padding="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/linearLayout12">
 
         <RadioGroup
             android:id="@+id/RadioGroupScreenType"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="5"
-            android:layout_marginEnd="3dp"
-            android:layout_marginStart="3dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="horizontal">
 
             <RadioButton
                 android:id="@+id/rbtn_default"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:onClick="onRbtn_Green"
                 android:text="@string/screen_Green"
-                android:textSize="16dp"
-                android:textStyle="bold"
-                android:textColor="@color/teal_700"
+                android:textColor="@color/text_primary"
+                android:buttonTint="@color/neon_cyan"
+                android:textSize="14sp"
                 tools:ignore="TouchTargetSizeCheck" />
 
             <RadioButton
                 android:id="@+id/rbtn_gray"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:onClick="onRbtn_Gray"
                 android:text="@string/screen_Gray"
-                android:textSize="16dp"
-                android:textStyle="bold"
-                android:textColor="@color/teal_700"
+                android:textColor="@color/text_primary"
+                android:buttonTint="@color/neon_cyan"
+                android:textSize="14sp"
                 tools:ignore="TouchTargetSizeCheck" />
 
             <RadioButton
                 android:id="@+id/rbtn_orange"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:onClick="onRbtn_Orange"
                 android:text="@string/screen_Orange"
-                android:textSize="16dp"
-                android:textStyle="bold"
-                android:textColor="@color/teal_700"
+                android:textColor="@color/text_primary"
+                android:buttonTint="@color/neon_cyan"
+                android:textSize="14sp"
                 tools:ignore="TouchTargetSizeCheck" />
-
         </RadioGroup>
 
         <Switch
             android:id="@+id/sw_autostart"
-            android:layout_marginTop="5dp"
-            android:layout_marginStart="5dp"
-            android:layout_marginBottom="5dp"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="2"
-            android:backgroundTint="@null"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
             android:onClick="onSwAuto"
             android:text="@string/sw_AUTO"
-            android:textColor="@color/teal_700"
-            android:textStyle="bold"
-            android:textSize="16dp"
+            android:textColor="@color/text_primary"
+            android:thumbTint="@color/neon_cyan"
+            android:trackTint="#555555"
+            android:textSize="14sp"
             tools:ignore="TouchTargetSizeCheck" />
-
     </LinearLayout>
-
 
     <LinearLayout
         android:id="@+id/linearLayout5"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:gravity="center|bottom"
-        tools:layout_editor_absoluteX="16dp"
-        tools:layout_editor_absoluteY="16dp">
-        <!--
-        <TextView
-            android:id="@+id/text_dummy"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_centerHorizontal="true"
-            android:layout_marginBottom="5dp"
-            android:gravity="center"
-            android:textColor="@color/teal_700"
-            android:text="dummy"
-            android:textStyle="bold"
-            android:textSize="20dp"/> -->
+        app:layout_constraintBottom_toBottomOf="parent">
+
         <com.google.android.gms.ads.AdView
             android:id="@+id/adView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_centerHorizontal="true"
             android:layout_marginBottom="5dp"
             ads:adSize="BANNER"
-            ads:adUnitId="ca-app-pub-4924620089567925/9986644039">
-            </com.google.android.gms.ads.AdView>
-
+            ads:adUnitId="ca-app-pub-4924620089567925/9986644039" />
     </LinearLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/lockOverlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#FF333333"
+        android:background="#DD000000"
         android:clickable="true"
         android:focusable="true"
         android:visibility="gone"
+        android:elevation="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -360,15 +274,15 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/screen_lock"
-            android:textColor="#FF03DAC5"
             android:gravity="center"
-            android:textSize="20sp"
+            android:text="@string/screen_lock"
+            android:textColor="@color/neon_cyan"
+            android:textSize="24sp"
+            android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
-
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

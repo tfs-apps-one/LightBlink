@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Existing Colors (Preserved for compatibility) -->
     <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#FF6200EE</color>
     <color name="purple_700">#FF3700B3</color>
@@ -9,7 +10,15 @@
     <color name="black">#FF555555</color>
     <color name="white">#FFFFFFFF</color>
     <color name="org_red">#FFdd7766</color>
-    <!--
-    <color name="org_red">#FFdd5555</color>
-    -->
+
+    <!-- New Cyberpunk / Premium Navy UI Colors -->
+    <color name="bg_dark">#FF1E293B</color>     <!-- Tailwind Slate-800 -->
+    <color name="card_dark">#FF334155</color>   <!-- Tailwind Slate-700 -->
+    <color name="neon_cyan">#FF00FFFF</color>   <!-- Pure Aqua/Cyan for max visibility -->
+    <color name="neon_cyan_dark">#FF0891B2</color>
+    <color name="neon_orange">#FFFF9100</color>
+    <color name="neon_red">#FFFF1744</color>
+    <color name="neon_red_dark">#FFB91C1C</color>
+    <color name="text_primary">#FFFFFFFF</color>
+    <color name="text_secondary">#FFCBD5E1</color>
 </resources>

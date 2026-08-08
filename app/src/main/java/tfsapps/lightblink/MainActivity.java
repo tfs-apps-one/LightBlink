@@ -6,7 +6,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 
 //DB関連
 import android.app.Activity;
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -79,6 +79,7 @@ public class MainActivity extends AppCompatActivity {
     private SeekBar seek_blinkinterval; //点滅間隔
     private SeekBar seek_brightness;    //輝度調整
     private boolean isStart = false;
+    private boolean isSOS = false;
     private Switch sw_auto;             //トグルＳＷ
 
 
@@ -87,6 +88,17 @@ public class MainActivity extends AppCompatActivity {
     public Timer blinkTimer;					//タイマー用
     public BlinkingTask blinkTimerTask;		//タイマタスククラス
     public Handler bHandler = new Handler();   //UI Threadへのpost用ハンドラ
+    // SOSスレッド関連
+    private boolean sosBlinking = false;
+    public Timer sosTimer;
+    public SOSTask sosTimerTask;
+    public Handler sHandler = new Handler();
+    private int sosIndex = 0;
+    private final boolean[] sosPattern = {
+        true, false, true, false, true, false, false, false,
+        true, true, true, false, true, true, true, false, true, true, true, false, false, false,
+        true, false, true, false, true, false, false, false, false, false, false, false
+    };
 
     public Timer mainTimer;					//タイマー用
     public MainTimerTask mainTimerTask;		//タイマタスククラス
@@ -336,48 +348,30 @@ public class MainActivity extends AppCompatActivity {
         表示処理
     ****************************************************/
     public void screen_display(){
-
         Button btn_tips = (Button)findViewById(R.id.btn_tips);
         RadioButton rbtn1 = (RadioButton)findViewById((R.id.rbtn_default));
         RadioButton rbtn2 = (RadioButton)findViewById((R.id.rbtn_gray));
         RadioButton rbtn3 = (RadioButton)findViewById((R.id.rbtn_orange));
         Switch sw1 = (Switch) findViewById(R.id.sw_autostart);
 
-        /* SEEK */
         if (seek_blinkinterval == null) {
             seek_blinkinterval = (SeekBar) findViewById(R.id.seek_blink);
         }
         seek_blinkinterval.setProgress(db_interval);
 
-        /* IMAGE BUTTON */
         if (img_onoff == null){
             img_onoff = (ImageButton) findViewById(R.id.btn_img_onoff);
         }
-        if (img_blink == null){
-            img_blink = (ImageButton) findViewById(R.id.btn_img_blink);
-        }
 
-        /* ON時 */
-        if (isStart){
-            btn_tips.setBackgroundTintList(null);
-            btn_tips.setTextColor(getColor(R.color.purple_700_off));
-            btn_tips.setBackgroundResource(R.drawable.btn_grad3);
-        }
-        /* OFF時 */
-        else {
-            btn_tips.setBackgroundTintList(null);
-            btn_tips.setTextColor(getColor(R.color.purple_700));
-            btn_tips.setBackgroundResource(R.drawable.btn_grad3);
-        }
-
-        /* TEXT表示 */
         TextView text_onoff = (TextView)findViewById(R.id.text_onoff);
         if (isStart){
             text_onoff.setText("O N");
-        }
-        else{
+        } else if (isSOS) {
+            text_onoff.setText("SOS");
+        } else {
             text_onoff.setText("OFF");
         }
+
         TextView text_volume1 = (TextView)findViewById(R.id.text_blink);
         text_volume1.setText(""+db_interval);
 
@@ -386,145 +380,69 @@ public class MainActivity extends AppCompatActivity {
         String s1 = getResources().getString(R.string.string_always);
         String s2 = getResources().getString(R.string.string_interval);
         String s3 = getResources().getString(R.string.string_msec);
-        switch (db_interval){
-            case 0:     text_status.setText(s1);
-                        break;
-            default:    text_status.setText(s2+" "+data+" "+s3);
-                        break;
+        if (db_interval == 0) {
+            text_status.setText(s1);
+        } else {
+            text_status.setText(s2+" "+data+" "+s3);
         }
 
-        /* スイッチ */
         if (db_data3 > 0) {
             sw_auto.setChecked(true);
-        }
-        else{
+        } else {
             sw_auto.setChecked(false);
         }
 
-
-        /* ラジオボタンの表示 */
         switch (db_data2){
             default:
             case 1:
-                rbtn1.setChecked(true);
-                rbtn2.setChecked(false);
-                rbtn3.setChecked(false);
+                rbtn1.setChecked(true); rbtn2.setChecked(false); rbtn3.setChecked(false);
                 break;
             case 2:
-                rbtn1.setChecked(false);
-                rbtn2.setChecked(true);
-                rbtn3.setChecked(false);
+                rbtn1.setChecked(false); rbtn2.setChecked(true); rbtn3.setChecked(false);
                 break;
             case 3:
-                rbtn1.setChecked(false);
-                rbtn2.setChecked(false);
-                rbtn3.setChecked(true);
+                rbtn1.setChecked(false); rbtn2.setChecked(false); rbtn3.setChecked(true);
                 break;
         }
 
+        // Color and Image Updates
+        int accentColor = getColor(R.color.neon_cyan);
+        int onImage = R.drawable.on_2;
+        int offImage = R.drawable.off_2;
 
-        /* レイアウトのアクティブ表示 */
-        LinearLayout lay_normal_11 = (LinearLayout)findViewById(R.id.linearLayout11);
-        LinearLayout lay_normal_12 = (LinearLayout)findViewById(R.id.linearLayout12);
-        LinearLayout lay_normal_13 = (LinearLayout)findViewById(R.id.linearLayout13);
-        LinearLayout lay_normal_22 = (LinearLayout)findViewById(R.id.linearLayout22);
-
-        switch (db_data2) {
-            default:
-            case 1:
-                text_onoff.setTextColor(getColor(R.color.teal_700));
-                text_status.setTextColor(getColor(R.color.teal_700));
-                text_volume1.setTextColor(getColor(R.color.teal_700));
-                text_status.setTextColor(getColor(R.color.teal_700));
-                rbtn1.setTextColor(getColor(R.color.teal_700));
-                rbtn2.setTextColor(getColor(R.color.teal_700));
-                rbtn3.setTextColor(getColor(R.color.teal_700));
-                sw1.setTextColor(getColor(R.color.teal_700));
-
-                // ON
-                if (isStart == true) {
-                    img_onoff.setImageResource(R.drawable.on_2);
-
-                    lay_normal_11.setBackgroundResource(R.drawable.btn_round);
-                    lay_normal_12.setBackgroundResource(R.drawable.btn_grad3);
-                    lay_normal_13.setBackgroundResource(R.drawable.btn_grad3);
-                    lay_normal_22.setBackgroundResource(R.drawable.btn_grad3);
-                }
-                // OFF
-                else {
-                    img_onoff.setImageResource(R.drawable.off_2);
-
-                    lay_normal_11.setBackgroundResource(R.drawable.btn_grad3);
-                    lay_normal_12.setBackgroundResource(R.drawable.btn_round);
-                    lay_normal_13.setBackgroundResource(R.drawable.btn_round);
-                    lay_normal_22.setBackgroundResource(R.drawable.btn_round);
-                }
-                break;
-            case 2:
-                text_onoff.setTextColor(getColor(R.color.black));
-                text_status.setTextColor(getColor(R.color.black));
-                text_volume1.setTextColor(getColor(R.color.black));
-                text_status.setTextColor(getColor(R.color.black));
-                rbtn1.setTextColor(getColor(R.color.black));
-                rbtn2.setTextColor(getColor(R.color.black));
-                rbtn3.setTextColor(getColor(R.color.black));
-                sw1.setTextColor(getColor(R.color.black));
-
-                // ON
-                if (isStart == true) {
-                    img_onoff.setImageResource(R.drawable.on_3);
-
-                    lay_normal_11.setBackgroundResource(R.drawable.btn_grad1);
-                    lay_normal_12.setBackgroundResource(R.drawable.btn_grad3);
-                    lay_normal_13.setBackgroundResource(R.drawable.btn_grad3);
-                    lay_normal_22.setBackgroundResource(R.drawable.btn_grad3);
-                }
-                // OFF
-                else {
-                    img_onoff.setImageResource(R.drawable.off_3);
-
-                    lay_normal_11.setBackgroundResource(R.drawable.btn_grad3);
-                    lay_normal_12.setBackgroundResource(R.drawable.btn_grad1);
-                    lay_normal_13.setBackgroundResource(R.drawable.btn_grad1);
-                    lay_normal_22.setBackgroundResource(R.drawable.btn_grad1);
-                }
-                break;
-            case 3:
-                text_onoff.setTextColor(getColor(R.color.org_red));
-                text_status.setTextColor(getColor(R.color.org_red));
-                text_volume1.setTextColor(getColor(R.color.org_red));
-                text_status.setTextColor(getColor(R.color.org_red));
-                rbtn1.setTextColor(getColor(R.color.org_red));
-                rbtn2.setTextColor(getColor(R.color.org_red));
-                rbtn3.setTextColor(getColor(R.color.org_red));
-                sw1.setTextColor(getColor(R.color.org_red));
-
-                // ON
-                if (isStart == true) {
-                    img_onoff.setImageResource(R.drawable.on_4);
-
-                    lay_normal_11.setBackgroundResource(R.drawable.btn_grad2);
-                    lay_normal_12.setBackgroundResource(R.drawable.btn_grad3);
-                    lay_normal_13.setBackgroundResource(R.drawable.btn_grad3);
-                    lay_normal_22.setBackgroundResource(R.drawable.btn_grad3);
-                }
-                // OFF
-                else {
-                    img_onoff.setImageResource(R.drawable.off_4);
-
-                    lay_normal_11.setBackgroundResource(R.drawable.btn_grad3);
-                    lay_normal_12.setBackgroundResource(R.drawable.btn_grad2);
-                    lay_normal_13.setBackgroundResource(R.drawable.btn_grad2);
-                    lay_normal_22.setBackgroundResource(R.drawable.btn_grad2);
-                }
-                break;
+        if (db_data2 == 2) {
+            accentColor = getColor(R.color.text_primary);
+            onImage = R.drawable.on_3;
+            offImage = R.drawable.off_3;
+        } else if (db_data2 == 3) {
+            accentColor = getColor(R.color.neon_orange);
+            onImage = R.drawable.on_4;
+            offImage = R.drawable.off_4;
         }
+
+        if (isSOS) {
+            img_onoff.setImageResource(R.drawable.on_4);
+            text_onoff.setTextColor(getColor(R.color.neon_red));
+        } else if (isStart) {
+            img_onoff.setImageResource(onImage);
+            text_onoff.setTextColor(accentColor);
+        } else {
+            img_onoff.setImageResource(offImage);
+            text_onoff.setTextColor(getColor(R.color.text_secondary));
+        }
+
+        text_status.setTextColor(accentColor);
+        text_volume1.setTextColor(accentColor);
+        rbtn1.setTextColor(accentColor);
+        rbtn2.setTextColor(accentColor);
+        rbtn3.setTextColor(accentColor);
+        sw1.setTextColor(accentColor);
     }
-
-    /* **************************************************
-        ライトスタート　ボタン処理
-    ****************************************************/
     public void onStartStop(View view){
+        if (isSOS) {
+            light_OFF();
+            isSOS = false;
+        }
 
         String mess = "";
 
@@ -553,8 +471,7 @@ public class MainActivity extends AppCompatActivity {
         TIPS　ボタン処理
     ****************************************************/
     public void onTips(View view){
-        AlertDialog.Builder guide = new AlertDialog.Builder(this);
-        TextView vmessage = new TextView(this);
+        AlertDialog.Builder guide = new AlertDialog.Builder(this, R.style.CoolDialogTheme);
         int level = 0;
         String pop_message = "";
         String btn_yes = "";
@@ -592,16 +509,10 @@ public class MainActivity extends AppCompatActivity {
                 btn_no += "N O";
             }
 
-            //メッセージ
-            vmessage.setText(pop_message);
-            vmessage.setBackgroundColor(Color.DKGRAY);
-            vmessage.setTextColor(Color.WHITE);
-//            vmessage.setTextSize(20);
-
-            //タイトル
+            //タイトルとメッセージ
             guide.setTitle("TIPS");
+            guide.setMessage(pop_message);
             guide.setIcon(R.drawable.present);
-            guide.setView(vmessage);
 
             guide.setPositiveButton(btn_yes, new DialogInterface.OnClickListener() {
                 @Override
@@ -850,6 +761,38 @@ public class MainActivity extends AppCompatActivity {
             am.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0);
         }
     }
+
+    public void onSOSClick(View view) {
+        if (isStart) {
+            light_OFF();
+            isStart = false;
+        }
+        if (isSOS) {
+            light_OFF();
+            isSOS = false;
+        } else {
+            isSOS = true;
+            sosIndex = 0;
+            this.sosTimer = new Timer();
+            this.sosTimerTask = new SOSTask();
+            this.sosTimer.schedule(sosTimerTask, 100, 200); // 200ms per unit
+            
+            String mess = (_language.equals("ja")) ? "SOSモードを開始しました" : "SOS Mode Started";
+            Toast.makeText(this, mess, Toast.LENGTH_SHORT).show();
+        }
+        screen_display();
+    }
+
+    public void onHelpClick(View view) {
+        AlertDialog.Builder help = new AlertDialog.Builder(this, R.style.CoolDialogTheme);
+        String mess = (_language.equals("ja")) ?
+                "【使い方】\n\n・中央ボタン：ライトON/OFF\n・SOSボタン：モールス信号でSOSを点滅\n・シークバー：点滅間隔の調整\n・下部ラジオボタン：画面カラーテーマ変更\n・自動ONスイッチ：アプリ起動時にライトを自動ON（ポイント獲得で解放）\n・左上の鍵アイコン：画面をロック（長押しで解除）" :
+                "[How to Use]\n\n- Main Button: Light ON/OFF\n- SOS Button: SOS Morse Code blink\n- SeekBar: Blink interval\n- RadioButtons: Theme color\n- Auto SW: Auto ON on startup (unlock via points)\n- Lock Icon: Lock screen (long press to unlock)";
+        help.setTitle("ヘルプ / Help");
+        help.setMessage(mess);
+        help.setPositiveButton("OK", null);
+        help.show();
+    }
     public void light_ON() {
 
         if (db_interval == 0){
@@ -873,6 +816,10 @@ public class MainActivity extends AppCompatActivity {
      *   ライトＯＦＦ
      * */
     public void light_OFF() {
+        if (this.sosTimer != null) {
+            this.sosTimer.cancel();
+            this.sosTimer = null;
+        }
         if(mCameraId == null){
             return;
         }
@@ -924,6 +871,22 @@ public class MainActivity extends AppCompatActivity {
      * run()に定周期で処理したい内容を記述
      *
      */
+
+    public class SOSTask extends TimerTask {
+        @Override
+        public void run() {
+            sHandler.post(new Runnable() {
+                public void run() {
+                    blinking = sosPattern[sosIndex];
+                    light_on_exec();
+                    sosIndex++;
+                    if (sosIndex >= sosPattern.length) {
+                        sosIndex = 0; // Loop SOS
+                    }
+                }
+            });
+        }
+    }
     public class BlinkingTask extends TimerTask {
         @Override
         public void run() {
